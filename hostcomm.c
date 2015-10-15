@@ -1,7 +1,7 @@
 #include "fusb30x_global.h"
 #include "GenericTypeDefs.h"
 #include "platform_helpers.h"
-#include "core/core.h"
+#include "core.h"
 #include "hostcomm.h"
 
 void fusb_ProcessMsg(u8* inMsgBuffer, u8* outMsgBuffer)

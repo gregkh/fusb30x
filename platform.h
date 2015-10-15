@@ -44,7 +44,7 @@
  * This platform is for the Linux kernel driver.
  */
 #ifdef PLATFORM_LINUX
-#include "../GenericTypeDefs.h"
+#include "GenericTypeDefs.h"
 #endif // PLATFORM_LINUX
 
 /*******************************************************************************

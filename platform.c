@@ -1,6 +1,6 @@
 #include <linux/kernel.h>                                                       // printk
 #include "platform_helpers.h"                                                   // Implementation details
-#include "core/platform.h"
+#include "platform.h"
 
 /*******************************************************************************
 * Function:        platform_set/get_vbus_5v_enable

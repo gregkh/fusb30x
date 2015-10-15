@@ -5,20 +5,20 @@ fusb30x_whole-objs :=	fusb30x_driver.o \
 			platform.o \
 			platform_helpers.o \
 			hostcomm.o \
-			core/AlternateModes.o \
-			core/core.o \
-			core/fusb30X.o \
-			core/Log.o \
-			core/PDPolicy.o \
-			core/PDProtocol.o \
-			core/TypeC.o \
-			core/vdm/bitfield_translators.o \
-			core/vdm/vdm.o \
-			core/vdm/vdm_callbacks.o \
-			core/vdm/vdm_config.o \
-			core/vdm/DisplayPort/configure.o \
-			core/vdm/DisplayPort/dp.o \
-			core/vdm/DisplayPort/dp_system_stubs.o
+			AlternateModes.o \
+			core.o \
+			fusb30X.o \
+			Log.o \
+			PDPolicy.o \
+			PDProtocol.o \
+			TypeC.o \
+			vdm/bitfield_translators.o \
+			vdm/vdm.o \
+			vdm/vdm_callbacks.o \
+			vdm/vdm_config.o \
+			vdm/DisplayPort/configure.o \
+			vdm/DisplayPort/dp.o \
+			vdm/DisplayPort/dp_system_stubs.o
 
 KERNELVER               ?= $(shell uname -r)
 KERNELDIR               ?= /lib/modules/$(KERNELVER)/build
