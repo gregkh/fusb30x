@@ -19,7 +19,7 @@
 /* Driver-specific includes */
 #include "fusb30x_global.h"                                                     // Driver-specific structures/types
 #include "platform_helpers.h"                                                   // I2C R/W, GPIO, misc, etc
-#include "../core/core.h"                                                       // GetDeviceTypeCStatus
+#include "core/core.h"                                                          // GetDeviceTypeCStatus
 #include "fusb30x_driver.h"
 
 /******************************************************************************

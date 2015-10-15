@@ -11,7 +11,7 @@
 #include <linux/gpio.h>
 
 #include "fusb30x_global.h"                                                     // Chip structure access
-#include "../core/core.h"                                                       // Core access
+#include "core/core.h"                                                          // Core access
 #include "hostcomm.h"
 #include "platform_helpers.h"
 

@@ -1,10 +1,10 @@
 ccflags-y += -DPLATFORM_LINUX
 obj-y   += fusb30x_whole.o
-fusb30x_whole-objs := Platform_Linux/fusb30x_driver.o \
-			Platform_Linux/fusb30x_global.o \
-			Platform_Linux/platform.o \
-			Platform_Linux/platform_helpers.o \
-			Platform_Linux/hostcomm.o \
+fusb30x_whole-objs :=	fusb30x_driver.o \
+			fusb30x_global.o \
+			platform.o \
+			platform_helpers.o \
+			hostcomm.o \
 			core/AlternateModes.o \
 			core/core.o \
 			core/fusb30X.o \
