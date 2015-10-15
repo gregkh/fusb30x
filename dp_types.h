@@ -1,7 +1,7 @@
 #ifndef __DISPLAYPORT_TYPES_H__
 #define __DISPLAYPORT_TYPES_H__
 
-#include "../platform.h"
+#include "platform.h"
 
 /* DisplayPort-specific commands */
 typedef enum {

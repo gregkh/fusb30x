@@ -35,9 +35,9 @@
 #include "vdm.h"
 #include "vdm_types.h"
 #include "bitfield_translators.h"
-#include "DisplayPort/dp_types.h"
-#include "DisplayPort/dp.h"
-#include "DisplayPort/interface_dp.h"
+#include "dp_types.h"
+#include "dp.h"
+#include "interface_dp.h"
 
 /////////////////////////////////////////////////////////////////////////////
 //      Variables for use with the USB PD state machine

@@ -1,8 +1,8 @@
 #include "dp.h"
 #include "interface_dp.h"
-#include "../vdm.h"
-#include "../bitfield_translators.h"
-#include "../PD_Types.h"
+#include "vdm.h"
+#include "bitfield_translators.h"
+#include "PD_Types.h"
 
 /* TODO: HPD GPIO Bridge */
 

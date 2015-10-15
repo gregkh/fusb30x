@@ -30,7 +30,7 @@
 
 #include "vdm_callbacks.h"
 #include "vdm_types.h"
-#include "DisplayPort/dp.h"
+#include "dp.h"
 
 BOOL svid_enable;
 BOOL mode_enable;

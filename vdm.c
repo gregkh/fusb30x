@@ -36,7 +36,7 @@
 #include "bitfield_translators.h"
 #include "fsc_vdm_defs.h"
 
-#include "DisplayPort/dp.h"
+#include "dp.h"
 
 // assuming policy state is made elsewhere
 extern 	PolicyState_t 	PolicyState;

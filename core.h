@@ -11,7 +11,7 @@
 #include "TypeC.h"
 #include "PDPolicy.h"
 #include "PDProtocol.h"
-#include "DisplayPort/interface_dp.h"
+#include "interface_dp.h"
 #include "platform.h"
 
 VOID core_initialize(VOID);
