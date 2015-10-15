@@ -29,9 +29,9 @@
  *****************************************************************************/
 
 #include "vdm.h"
-#include "../platform.h" 
-#include "../PDPolicy.h"
-#include "../PD_Types.h"
+#include "platform.h"
+#include "PDPolicy.h"
+#include "PD_Types.h"
 #include "vdm_types.h"
 #include "bitfield_translators.h"
 #include "fsc_vdm_defs.h"

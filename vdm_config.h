@@ -1,6 +1,6 @@
 #ifndef __FSC_VDM_CONFIG_H__
 #define __FSC_VDM_CONFIG_H__
-#include "../platform.h"
+#include "platform.h"
 #include "DisplayPort/dp_types.h"
 
 /* General VDM Things */

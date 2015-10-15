@@ -33,7 +33,7 @@
 /////////////////////////////////////////////////////////////////////////////
 #include "platform.h"
 #include "PD_Types.h"
-#include "vdm/vdm.h"
+#include "vdm.h"
 
 // EXTERNS
 extern BOOL                     USBPDTxFlag;                                    // Flag to indicate that we need to send a message (set by device policy manager)

@@ -33,7 +33,7 @@
 /////////////////////////////////////////////////////////////////////////////
 #include "platform.h"
 #include "PD_Types.h"
-#include "vdm/vdm.h"
+#include "vdm.h"
 
 // EXTERNS
 extern ProtocolState_t          ProtocolState;                                  // State variable for Protocol Layer

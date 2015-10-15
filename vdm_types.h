@@ -35,7 +35,7 @@
 #ifndef __VDM_TYPES_H__
 #define __VDM_TYPES_H__
  
-#include "../platform.h" 
+#include "platform.h" 
 
 #define STRUCTURED_VDM_VERSION 0
 #define MAX_NUM_SVIDS 11

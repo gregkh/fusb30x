@@ -1,7 +1,7 @@
 #ifndef _FSC_INTERFACE_DP_H
 #define _FSC_INTERFACE_DP_H
 
-#include "../../platform.h"
+#include "../platform.h"
 #include "dp_types.h"
 
 /* vvvvv Functions in the core to be called by the system vvvvv */

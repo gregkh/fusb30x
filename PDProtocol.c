@@ -27,11 +27,11 @@
 #include "PDPolicy.h"
 #include "TypeC.h"
 #include "fusb30X.h"
-#include "vdm/vdm_callbacks.h"
-#include "vdm/vdm_callbacks_defs.h"
-#include "vdm/vdm.h"
-#include "vdm/vdm_types.h"
-#include "vdm/bitfield_translators.h"
+#include "vdm_callbacks.h"
+#include "vdm_callbacks_defs.h"
+#include "vdm.h"
+#include "vdm_types.h"
+#include "bitfield_translators.h"
 
 #include "platform.h"
 

@@ -31,7 +31,7 @@
 #ifndef __VDM_BITFIELD_TRANSLATORS_H__
 #define __VDM_BITFIELD_TRANSLATORS_H__
 
-#include "../platform.h" 
+#include "platform.h" 
 				
 /*
  * Functions that convert bits into internal header representations...

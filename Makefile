@@ -12,13 +12,13 @@ fusb30x_whole-objs :=	fusb30x_driver.o \
 			PDPolicy.o \
 			PDProtocol.o \
 			TypeC.o \
-			vdm/bitfield_translators.o \
-			vdm/vdm.o \
-			vdm/vdm_callbacks.o \
-			vdm/vdm_config.o \
-			vdm/DisplayPort/configure.o \
-			vdm/DisplayPort/dp.o \
-			vdm/DisplayPort/dp_system_stubs.o
+			bitfield_translators.o \
+			vdm.o \
+			vdm_callbacks.o \
+			vdm_config.o \
+			DisplayPort/configure.o \
+			DisplayPort/dp.o \
+			DisplayPort/dp_system_stubs.o
 
 KERNELVER               ?= $(shell uname -r)
 KERNELDIR               ?= /lib/modules/$(KERNELVER)/build

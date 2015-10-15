@@ -1,4 +1,4 @@
-#include "../../platform.h"
+#include "../platform.h"
 #include "interface_dp.h"
 
 VOID informStatus(DisplayPortStatus_t stat) 

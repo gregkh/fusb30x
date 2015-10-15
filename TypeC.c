@@ -37,7 +37,7 @@
 #include "AlternateModes.h"
 
 #include "PDPolicy.h"
-#include "vdm/vdm_config.h"
+#include "vdm_config.h"
 
 /////////////////////////////////////////////////////////////////////////////
 //      Variables accessible outside of the TypeC state machine

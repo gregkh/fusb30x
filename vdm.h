@@ -31,10 +31,10 @@
 #ifndef __VDM_MANAGER_H__
 #define __VDM_MANAGER_H__
 
-#include "../platform.h"
+#include "platform.h"
 #include "fsc_vdm_defs.h"
 #include "vdm_callbacks_defs.h"
-#include "../PD_Types.h"
+#include "PD_Types.h"
 
 #define NUM_VDM_MODES 6
 #define MAX_NUM_SVIDS_PER_SOP 30 

@@ -37,7 +37,7 @@
  */
 
 #include "vdm_types.h"
-#include "../PD_Types.h" 
+#include "PD_Types.h"
 
 typedef Identity (*RequestIdentityInfo)(VOID);
 
