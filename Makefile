@@ -16,7 +16,6 @@ fusb30x_whole-objs :=	fusb30x_driver.o \
 			vdm.o \
 			vdm_callbacks.o \
 			vdm_config.o \
-			configure.o \
 			dp.o \
 			dp_system_stubs.o
 
