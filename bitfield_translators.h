@@ -33,22 +33,12 @@
 /*
  * Functions that convert bits into internal header representations...
  */
-// converts 32 bits into an unstructured vdm header struct
-UnstructuredVdmHeader getUnstructuredVdmHeader(UINT32 in);
-// converts 32 bits into a structured vdm header struct
-StructuredVdmHeader getStructuredVdmHeader(UINT32 in);
 // converts 32 bits into an ID Header struct
 IdHeader getIdHeader(UINT32 in);
-// returns structured/unstructured vdm type
-VdmType getVdmTypeOf(UINT32 in);
 
 /*
  * Functions that convert internal header representations into bits...
  */
-// converts unstructured vdm header struct into 32 bits
-UINT32 getBitsForUnstructuredVdmHeader(UnstructuredVdmHeader in);
-// converts structured vdm header struct into 32 bits
-UINT32 getBitsForStructuredVdmHeader(StructuredVdmHeader in);
 // converts ID Header struct into 32 bits
 UINT32 getBitsForIdHeader(IdHeader in);
 
