@@ -65,7 +65,7 @@ extern doDataObject_t           PolicyRxDataObj[7];                             
 extern doDataObject_t           PolicyTxDataObj[7];                             // Buffer for data objects to send
 
 extern UINT32                   NoResponseTimer;                                // Policy engine no response timer
- 
+
 extern UINT32                   VdmTimer;
 extern BOOL                     VdmTimerStarted;
 

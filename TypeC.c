@@ -156,18 +156,18 @@ void InitializeRegisters(void)
 void InitializeTypeCVariables(void)
 {
     InitializeRegisters();              // Copy 302 registers to register struct
-    
+
     Registers.Control.INT_MASK = 0;        // Enable interrupt Pin
     DeviceWrite(regControl0, 1, &Registers.Control.byte[0]);
-    
+
     Registers.Control.TOG_RD_ONLY = 1;
     DeviceWrite(regControl2, 1, &Registers.Control.byte[2]);
-    
+
     blnSMEnabled = FALSE;                // Enable the TypeC state machine by default
     blnAccSupport = FALSE;              // Disable accessory support by default
     blnSrcPreferred = FALSE;            // Clear the source preferred flag by default
     blnSnkPreferred = FALSE;
-    
+
     // Set this based on 302 config
     switch (Registers.Control.MODE)
     {
@@ -184,11 +184,11 @@ void InitializeTypeCVariables(void)
             PortType = USBTypeC_DRP;
             break;
     }
-    
+
     //Disabled??
     //This gets changed anyway in init to delayUnattached
     ConnState = Disabled;               // Initialize to the disabled state?
-    
+
     blnINTActive = FALSE;               // Clear the handle interrupt flag
     blnCCPinIsCC1 = FALSE;              // Clear the flag to indicate CC1 is CC
     blnCCPinIsCC2 = FALSE;              // Clear the flag to indicate CC2 is CC
@@ -214,7 +214,7 @@ void InitializeTypeC(void)
     Timer_S = 0;
 
     InitializeStateLog(&TypeCStateLog); // Initialize log
-    
+
     SetStateDelayUnattached();
 }
 
@@ -249,7 +249,7 @@ void StateMachineTypeC(void)
         return;
 
     if (platform_get_device_irq_state())    // TODO: Do we need this? I think we only use I_TOGDONE and can read TOGS[3:1] when we get that
-    {        
+    {
         DeviceRead(regStatus0a, 7, &Registers.Status.byte[0]);     // Read the interrupta, interruptb, status0, status1 and interrupt registers
     }
 
@@ -272,7 +272,7 @@ void StateMachineTypeC(void)
             break;
         case AttachWaitSink:
             StateMachineAttachWaitSink();
-            break;            
+            break;
         case AttachedSink:
             StateMachineAttachedSink();
             break;
@@ -315,7 +315,7 @@ void StateMachineTypeC(void)
         case UnattachedSource:
             stateMachineUnattachedSource();
             break;
-        default:                                                    
+        default:
             SetStateDelayUnattached();                                          // We shouldn't get here, so go to the unattached state just in case
             break;
     }
@@ -355,9 +355,9 @@ void StateMachineUnattached(void)   //TODO: Update to account for Ra detection (
     if (Registers.Control.HOST_CUR != 0b01) // Host current must be set to default for Toggle Functionality
     {
         Registers.Control.HOST_CUR = 0b01;
-        DeviceWrite(regControl0, 1, &Registers.Control.byte[0]);              
+        DeviceWrite(regControl0, 1, &Registers.Control.byte[0]);
     }
-    
+
     if (Registers.Status.I_TOGDONE)
     {
         switch (Registers.Status.TOGSS)
@@ -415,7 +415,7 @@ void StateMachineUnattached(void)   //TODO: Update to account for Ra detection (
 void StateMachineAttachWaitSink(void)
 {
     debounceCC();
-    
+
     if ((CC1TermPDDebounce == CCTypeOpen) && (CC2TermPDDebounce == CCTypeOpen)) // If we have detected SNK.Open for atleast tPDDebounce on both pins...
     {
         if (PortType == USBTypeC_DRP)
@@ -436,14 +436,14 @@ void StateMachineAttachWaitSink(void)
             if ((PortType == USBTypeC_DRP) && blnSrcPreferred)                  // If we are configured as a DRP and prefer the source role...
                 SetStateTrySource();                                            // Go to the Try.Src state
             else                                                                // Otherwise we are free to attach as a sink
-            {                                       
-                SetStateAttachedSink();                                         // Go to the Attached.Snk state               
+            {
+                SetStateAttachedSink();                                         // Go to the Attached.Snk state
             }
         }
         else if ((CC1TermCCDebounce == CCTypeOpen) && (CC2TermCCDebounce > CCTypeOpen)) // If exactly one CC is open
         {
             blnCCPinIsCC1 = FALSE;                                              // CC2 Pin is CC
-            blnCCPinIsCC2 = TRUE;            
+            blnCCPinIsCC2 = TRUE;
             if ((PortType == USBTypeC_DRP) && blnSrcPreferred)                  // If we are configured as a DRP and prefer the source role...
                 SetStateTrySource();                                            // Go to the Try.Src state
             else                                                                // Otherwise we are free to attach as a sink
@@ -451,13 +451,13 @@ void StateMachineAttachWaitSink(void)
                 SetStateAttachedSink();                                         // Go to the Attached.Snk State
             }
         }
-    }    
+    }
 }
 
 void StateMachineAttachWaitSource(void)
-{  
+{
     debounceCC();
-    
+
     if(blnCCPinIsCC1)                                                           // Check other line before attaching
     {
         if(CC1TermCCDebounce != CCTypeUndefined)
@@ -472,7 +472,7 @@ void StateMachineAttachWaitSource(void)
             peekCC1Source();
         }
     }
-    
+
     if(blnAccSupport)                                                           // If accessory support is enabled
     {
         if ((CC1TermCCDebounce == CCTypeRa) && (CC2TermCCDebounce == CCTypeRa))               // If both pins are Ra, it's an audio accessory
@@ -494,7 +494,7 @@ void StateMachineAttachWaitSource(void)
         }
     }
     else if (((CC2TermCCDebounce >= CCTypeRdUSB) && (CC2TermCCDebounce < CCTypeUndefined)) && ((CC1TermCCDebounce == CCTypeOpen) || (CC1TermCCDebounce == CCTypeRa))) // If CC2 is Rd and CC1 is not...
-    {                                            
+    {
         if (VbusVSafe0V()) {                                                // Check for VBUS to be at VSafe0V first...
             if(blnSnkPreferred)
             {
@@ -518,7 +518,7 @@ void StateMachineAttachWaitSource(void)
 void StateMachineAttachWaitAccessory(void)
 {
     debounceCC();
-    
+
     if ((CC1TermCCDebounce == CCTypeRa) && (CC2TermCCDebounce == CCTypeRa))               // If they are both Ra, it's an audio accessory
     {
         SetStateAudioAccessory();
@@ -544,12 +544,12 @@ void StateMachineAttachWaitAccessory(void)
 void StateMachineAttachedSink(void)
 {
     debounceCC();
-    
+
     if ((Registers.Status.VBUSOK == FALSE) && (!PRSwapTimer) && (IsHardReset == FALSE))                   // If VBUS is removed and we are not in the middle of a power role swap...
     {
         SetStateDelayUnattached();                                              // Go to the unattached state
     }
-    
+
     if (blnCCPinIsCC1)
     {
         UpdateSinkCurrent(CC1TermCCDebounce);                                  // Update the advertised current
@@ -564,7 +564,7 @@ void StateMachineAttachedSink(void)
 void StateMachineAttachedSource(void)
 {
     debounceCC();
-    
+
     if(Registers.Switches.MEAS_CC1)
     {
         if ((CC1TermPrevious == CCTypeOpen) && (!PRSwapTimer))                       // If the debounced CC pin is detected as open and we aren't in the middle of a PR_Swap
@@ -590,7 +590,7 @@ void StateMachineAttachedSource(void)
 void StateMachineTryWaitSink(void)
 {
     debounceCC();
-    
+
     if ((StateTimer == 0) && (CC1TermPrevious == CCTypeOpen) && (CC2TermPrevious == CCTypeOpen))  // If tDRPTryWait has expired and we detected open on both pins...
         SetStateDelayUnattached();                                              // Go to the unattached state
     else if (Registers.Status.VBUSOK)                  // If we have detected VBUS and we have detected an Rp for >tCCDebounce...
@@ -609,7 +609,7 @@ void StateMachineTryWaitSink(void)
 void StateMachineTrySource(void)
 {
     debounceCC();
-    
+
     if ((CC1TermPDDebounce > CCTypeRa) && (CC1TermPDDebounce < CCTypeUndefined) && ((CC2TermPDDebounce == CCTypeOpen) || (CC2TermPDDebounce == CCTypeRa)))    // If the CC1 pin is Rd for atleast tPDDebounce...
     {
         SetStateAttachedSource();                                                  // Go to the Attached.Src state
@@ -625,9 +625,9 @@ void StateMachineTrySource(void)
 void StateMachineDebugAccessory(void)
 {
     debounceCC();
-    
+
     //TODO: Should detach when both are open
-    if ((CC1TermCCDebounce == CCTypeOpen) || (CC2TermCCDebounce == CCTypeOpen)) // If we have detected an open for > tCCDebounce 
+    if ((CC1TermCCDebounce == CCTypeOpen) || (CC2TermCCDebounce == CCTypeOpen)) // If we have detected an open for > tCCDebounce
     {
         if(PortType == USBTypeC_Source)
         {
@@ -644,9 +644,9 @@ void StateMachineDebugAccessory(void)
 void StateMachineAudioAccessory(void)
 {
     debounceCC();
-    
+
     //TODO: Should detach when both are open
-    if ((CC1TermCCDebounce == CCTypeOpen) || (CC2TermCCDebounce == CCTypeOpen)) // If we have detected an open for > tCCDebounce 
+    if ((CC1TermCCDebounce == CCTypeOpen) || (CC2TermCCDebounce == CCTypeOpen)) // If we have detected an open for > tCCDebounce
     {
         if(PortType == USBTypeC_Source)
         {
@@ -662,20 +662,20 @@ void StateMachineAudioAccessory(void)
 void StateMachinePoweredAccessory(void) //TODO: Update VCONN-Powered Accessory logic
 {
     debounceCC();
-    
+
     if(blnCCPinIsCC1 && (CC1TermPrevious == CCTypeOpen))    // Transition to Unattached.Snk when monitored CC pin is Open
     {
         SetStateDelayUnattached();
-    }   
+    }
     else if(blnCCPinIsCC2 && (CC2TermPrevious == CCTypeOpen))    // Transition to Unattached.Snk when monitored CC pin is Open
     {
         SetStateDelayUnattached();
-    }   
+    }
     /* else if not support PD or no response to powered accessory pd commands */
 //    else if(!PolicyHasContract)
 //    {
 //        SetStateDelayUnattached();
-//    }  
+//    }
     else if (StateTimer == 0)                                                   // If we have timed out (tAMETimeout) and haven't entered an alternate mode...
         SetStateUnsupportedAccessory();                                         // Go to the Unsupported.Accessory state
 }
@@ -683,15 +683,15 @@ void StateMachinePoweredAccessory(void) //TODO: Update VCONN-Powered Accessory l
 void StateMachineUnsupportedAccessory(void)
 {
     debounceCC();
-    
+
     if((blnCCPinIsCC1) && (CC1TermPrevious == CCTypeOpen))    // Transition to Unattached.Snk when monitored CC pin is Open
     {
         SetStateDelayUnattached();
-    }   
+    }
     else if((blnCCPinIsCC2) && (CC2TermPrevious == CCTypeOpen))    // Transition to Unattached.Snk when monitored CC pin is Open
     {
         SetStateDelayUnattached();
-    } 
+    }
 }
 
 void stateMachineTrySink(void)
@@ -700,7 +700,7 @@ void stateMachineTrySink(void)
     {
         debounceCC();
     }
-    
+
     if(Registers.Status.VBUSOK)
     {
         if ((CC1TermPDDebounce >= CCTypeRdUSB) && (CC1TermPDDebounce < CCTypeUndefined) && (CC2TermPDDebounce == CCTypeOpen))    // If the CC1 pin is Rd for atleast tPDDebounce...
@@ -712,7 +712,7 @@ void stateMachineTrySink(void)
             SetStateAttachedSink();                                                  // Go to the Attached.Src state
         }
     }
-    
+
     if ((CC1TermPDDebounce == CCTypeOpen) && (CC2TermPDDebounce == CCTypeOpen))
     {
         SetStateTryWaitSource();
@@ -722,7 +722,7 @@ void stateMachineTrySink(void)
 void stateMachineTryWaitSource(void)
 {
     debounceCC();
-    
+
     if(VbusVSafe0V())
     {
         if (((CC1TermPDDebounce >= CCTypeRdUSB) && (CC1TermPDDebounce < CCTypeUndefined)) && ((CC2TermPDDebounce == CCTypeRa) || CC2TermPDDebounce == CCTypeOpen))    // If the CC1 pin is Rd for atleast tPDDebounce...
@@ -734,7 +734,7 @@ void stateMachineTryWaitSource(void)
             SetStateAttachedSource();                                                  // Go to the Attached.Src state
         }
     }
-    
+
     if(StateTimer == 0)
     {
         if ((CC1TermPrevious == CCTypeOpen) && (CC1TermPrevious == CCTypeOpen))
@@ -753,12 +753,12 @@ void stateMachineUnattachedSource(void)
     }
 
     debounceCC();
-    
+
     if ((CC1TermPrevious == CCTypeRa) && (CC2TermPrevious == CCTypeRa))
     {
         SetStateAttachWaitSource();
     }
-    
+
     if ((CC1TermPrevious >= CCTypeRdUSB) && (CC1TermPrevious < CCTypeUndefined) && ((CC2TermPrevious == CCTypeRa) || CC2TermPrevious == CCTypeOpen))    // If the CC1 pin is Rd for atleast tPDDebounce...
     {
         blnCCPinIsCC1 = TRUE;                                                   // The CC pin is CC1
@@ -770,8 +770,8 @@ void stateMachineUnattachedSource(void)
         blnCCPinIsCC1 = FALSE;                                                  // The CC pin is CC2
         blnCCPinIsCC2 = TRUE;
         SetStateAttachWaitSource();                                                  // Go to the Attached.Src state
-    } 
-    
+    }
+
     if (DRPToggleTimer == 0)
     {
         SetStateDelayUnattached();
@@ -794,7 +794,7 @@ void SetStateDisabled(void)
     DeviceWrite(regPower, 1, &Registers.Power.byte);               // Commit the power state
     DeviceWrite(regControl0, 3, &Registers.Control.byte[0]);       // Commit the control state
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
-    USBPDDisable(TRUE);                                            // Disable the USB PD state machine 
+    USBPDDisable(TRUE);                                            // Disable the USB PD state machine
     resetDebounceVariables();
     blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag
     blnCCPinIsCC2 = FALSE;                                          // Clear the CC2 pin flag
@@ -818,7 +818,7 @@ void SetStateErrorRecovery(void)
     DeviceWrite(regPower, 1, &Registers.Power.byte);               // Commit the power state
     DeviceWrite(regControl0, 3, &Registers.Control.byte[0]);       // Commit the control state
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
-    USBPDDisable(TRUE);                                            // Disable the USB PD state machine 
+    USBPDDisable(TRUE);                                            // Disable the USB PD state machine
     resetDebounceVariables();
     blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag
     blnCCPinIsCC2 = FALSE;                                          // Clear the CC2 pin flag
@@ -849,7 +849,7 @@ void SetStateDelayUnattached(void)
     DeviceWrite(regPower, 1, &Registers.Power.byte);               // Commit the power state
     DeviceWrite(regControl0, 3, &Registers.Control.byte[0]);       // Commit the control state
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
-    USBPDDisable(TRUE);                                            // Disable the USB PD state machine 
+    USBPDDisable(TRUE);                                            // Disable the USB PD state machine
     resetDebounceVariables();
     blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag
     blnCCPinIsCC2 = FALSE;                                          // Clear the CC2 pin flag
@@ -875,7 +875,7 @@ void SetStateUnattached(void)
     platform_set_vbus_5v_enable(FALSE);                                       // Disable the 5V output...
     platform_set_vbus_lvl1_enable(FALSE);                                      // Disable the 12V output
     Registers.Switches.byte[0] = 0x00;                               // Disabled until vSafe0V
-    DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     
+    DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
     while(!VbusVSafe0V());                                          // Don't enable until vSafe0V
     Registers.Control.TOGGLE = 0;
     DeviceWrite(regControl2, 1, &Registers.Control.byte[2]);       // Commit the toggle
@@ -892,12 +892,12 @@ void SetStateUnattached(void)
     Registers.Control.HOST_CUR = 0b01;                              // Set current to default (required for toggle))
     Registers.Control.TOGGLE = 1;                                   // Enable the toggle
     platform_delay_10us(1);                                                  // Delay before re-enabling toggle
-    DeviceWrite(regControl0, 3, &Registers.Control.byte[0]);       // Commit the control state 
-    USBPDDisable(TRUE);                                            // Disable the USB PD state machine 
+    DeviceWrite(regControl0, 3, &Registers.Control.byte[0]);       // Commit the control state
+    USBPDDisable(TRUE);                                            // Disable the USB PD state machine
     ConnState = Unattached;                                         // Set the state machine variable to unattached
     SinkCurrent = utccNone;
     resetDebounceVariables();
-    blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag 
+    blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag
     blnCCPinIsCC2 = FALSE;                                          // Clear the CC2 pin flag
     StateTimer = T_TIMER_DISABLE;                                         // Disable the state timer, not used in this state
     tPDDebounce = T_TIMER_DISABLE;                                     // Disable the 1st level debounce timer, not used in this state
@@ -921,7 +921,7 @@ void SetStateAttachWaitSink(void)
     Registers.Switches.byte[0] = 0x07;                                          // Enable the pull-downs on the CC pins
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);                  // Commit the switch state
     resetDebounceVariables();
-    SinkCurrent = utccNone;                                         // Set the current advertisment variable to none until we determine what the current is  
+    SinkCurrent = utccNone;                                         // Set the current advertisment variable to none until we determine what the current is
     StateTimer = T_TIMER_DISABLE;                                         // Disable the state timer, not used in this state
     tPDDebounce = tPDDebounceMin;                                // Set the tPDDebounce for validating signals to transition to
     tCCDebounce = tCCDebounceMin;                                     // Disable the 2nd level debouncing until the first level has been debounced
@@ -936,7 +936,7 @@ void SetStateAttachWaitSource(void)
     platform_set_vbus_lvl1_enable(FALSE);                                      // Disable the 12V output
     Registers.Control.TOGGLE = 0;                                   // Disable the toggle
     DeviceWrite(regControl2, 1, &Registers.Control.byte[2]);       // Commit the toggle
-    
+
     updateSourceCurrent();
     ConnState = AttachWaitSource;                                   // Set the state machine variable to AttachWait.Src
     sourceOrSink = Source;
@@ -945,7 +945,7 @@ void SetStateAttachWaitSource(void)
     if ((blnCCPinIsCC1 == FALSE) && (blnCCPinIsCC2 == FALSE))           //Bandaid for automated testing TODO: Robustness
     {
         DetectCCPinSource();
-    }    
+    }
     if (blnCCPinIsCC1)                                              // If we detected CC1 as an Rd
     {
         peekCC2Source();
@@ -959,7 +959,7 @@ void SetStateAttachWaitSource(void)
         setDebounceVariablesCC2(CCTypeUndefined);
     }
 
-    DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state    
+    DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
     SinkCurrent = utccNone;                                         // Not used in Src
     tOverPDDebounce = T_TIMER_DISABLE;  // Disable PD filter timer
     StateTimer = T_TIMER_DISABLE;                                         // Disable the state timer, not used in this state
@@ -983,7 +983,7 @@ void SetStateAttachWaitAccessory(void)
     if ((blnCCPinIsCC1 == FALSE) && (blnCCPinIsCC2 == FALSE))           //Bandaid for automated testing TODO: Robustness
     {
         DetectCCPinSource();
-    }    
+    }
     if (blnCCPinIsCC1)                                              // If we detected CC1 as an Rd
     {
         peekCC2Source();
@@ -1040,7 +1040,7 @@ void SetStateAttachedSource(void)
         setDebounceVariablesCC2(CCTypeUndefined);
     }
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
-    
+
     USBPDEnable(TRUE, TRUE);                                        // Enable the USB PD state machine if applicable (no need to write to Device again), set as DFP
     SinkCurrent = utccNone;                                         // Set the Sink current to none (not used in source)
     StateTimer = T_TIMER_DISABLE;                                         // Disable the state timer, not used in this state
@@ -1073,7 +1073,7 @@ void SetStateAttachedSink(void)
     else                                                                        // Otherwise we are assuming CC2 is CC
     {
         peekCC1Sink();
-        Registers.Switches.byte[0] = 0x0B;                         
+        Registers.Switches.byte[0] = 0x0B;
         setDebounceVariablesCC2(CCTypeUndefined);
     }
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);                  // Commit the switch state
@@ -1092,7 +1092,7 @@ void RoleSwapToAttachedSink(void)
     platform_set_vbus_5v_enable( FALSE );                                       // Disable the 5V output...
     platform_set_vbus_lvl1_enable( FALSE );                                      // Disable the 12V output
     while(!VbusVSafe0V());                                        // Delay until VBUS is vSafe0V
-    ConnState = AttachedSink;                                       // Set the state machine variable to Attached.Sink   
+    ConnState = AttachedSink;                                       // Set the state machine variable to Attached.Sink
     sourceOrSink = Sink;
     updateSourceCurrent();
     if (blnCCPinIsCC1)                                              // If the CC pin is CC1...
@@ -1105,14 +1105,14 @@ void RoleSwapToAttachedSink(void)
     {
         // Maintain VCONN
         Registers.Switches.PU_EN2 = 0;                              // Disable the pull-up on CC2
-        Registers.Switches.PDWN2 = 1;                               // Enable the pull-down on CC2                                   
+        Registers.Switches.PDWN2 = 1;                               // Enable the pull-down on CC2
     }
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
     SinkCurrent = utccNone;                                         // Set the current advertisment variable to none until we determine what the current is
     StateTimer = T_TIMER_DISABLE;                                         // Disable the state timer, not used in this state
     tPDDebounce = tPDDebounceMin;                                // Set the debounce timer to tPDDebounceMin for detecting changes in advertised current
     tCCDebounce = tCCDebounceMin;                                     // Disable the 2nd level debounce timer, not used in this state
-    ToggleTimer = T_TIMER_DISABLE;                                        
+    ToggleTimer = T_TIMER_DISABLE;
     tOverPDDebounce = T_TIMER_DISABLE;  // Disable PD filter timer
     WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);
 }
@@ -1181,7 +1181,7 @@ void SetStateTrySource(void)
     if ((blnCCPinIsCC1 == FALSE) && (blnCCPinIsCC2 == FALSE))           //Bandaid for automated testing TODO: Robustness
     {
         DetectCCPinSource();
-    }     
+    }
     if (blnCCPinIsCC1)                                              // If we detected CC1 as an Rd
     {
         peekCC2Source();
@@ -1223,7 +1223,7 @@ void SetStateTrySink(void)
     tCCDebounce = T_TIMER_DISABLE;                                     // Disable the 2nd level since it's not needed
     ToggleTimer = tDeviceToggle;                                   // Keep the pull-ups on for the max tPDDebounce to ensure that the other side acknowledges the pull-up
     tOverPDDebounce = T_TIMER_DISABLE;  // Disable PD filter timer
-    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);    
+    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);
 }
 
 void SetStateTryWaitSource(void)
@@ -1238,7 +1238,7 @@ void SetStateTryWaitSource(void)
     if ((blnCCPinIsCC1 == FALSE) && (blnCCPinIsCC2 == FALSE))           //Bandaid for automated testing TODO: Robustness
     {
         DetectCCPinSource();
-    }    
+    }
     if (blnCCPinIsCC1)                                              // If we detected CC1 as an Rd
     {
         peekCC2Source();
@@ -1248,11 +1248,11 @@ void SetStateTryWaitSource(void)
     else
     {
         peekCC1Source();
-        Registers.Switches.byte[0] = 0x88;                           // Enable CC2 pull-up and measure  
+        Registers.Switches.byte[0] = 0x88;                           // Enable CC2 pull-up and measure
         setDebounceVariablesCC2(CCTypeUndefined);
     }
-    
-    DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state    
+
+    DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
     SinkCurrent = utccNone;                                         // Not used in Src
     tOverPDDebounce = T_TIMER_DISABLE;  // Disable PD filter timer
     StateTimer = tDRPTry;                                         // Disable the state timer, not used in this state
@@ -1374,7 +1374,7 @@ void SetStatePoweredAccessory(void)
     }
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
     // TODO: The line below will be uncommented once we have full support for VDM's and can enter an alternate mode as needed for Powered.Accessories
-    // USBPDEnable(TRUE, TRUE);  
+    // USBPDEnable(TRUE, TRUE);
 
     SinkCurrent = utccNone;                                         // Set the Sink current to none (not used in source)
     StateTimer = tAMETimeout;                                       // Set the state timer to tAMETimeout (need to enter alternate mode by this time)
@@ -1402,14 +1402,14 @@ void SetStateUnsupportedAccessory(void)
     if (blnCCPinIsCC1)                                      // If CC1 is detected as the CC pin...
     {
         peekCC2Source();
-        Registers.Switches.byte[0] = 0x44;                          
+        Registers.Switches.byte[0] = 0x44;
         setDebounceVariablesCC1(CCTypeUndefined);
     }
     else                                                           // Otherwise we are assuming CC2 is CC
     {
         blnCCPinIsCC2 = TRUE;
         peekCC1Source();
-        Registers.Switches.byte[0] = 0x88;                         
+        Registers.Switches.byte[0] = 0x88;
         setDebounceVariablesCC2(CCTypeUndefined);
     }
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);     // Commit the switch state
@@ -1442,7 +1442,7 @@ void SetStateUnattachedSource(void) // Currently only implemented for transition
     USBPDDisable(TRUE);                                            // Disable the USB PD state machine (no need to write Device again since we are doing it here)
     SinkCurrent = utccNone;
     resetDebounceVariables();
-    blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag 
+    blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag
     blnCCPinIsCC2 = FALSE;                                          // Clear the CC2 pin flag
     StateTimer = T_TIMER_DISABLE;                                         // Disable the state timer, not used in this state
     tPDDebounce = tPDDebounceMin;                                     // enable the 1st level debounce timer, not used in this state
@@ -1450,13 +1450,13 @@ void SetStateUnattachedSource(void) // Currently only implemented for transition
     ToggleTimer = tDeviceToggle;                                        // enable the toggle timer
     DRPToggleTimer = tTOG2;                                             // Timer to switch from unattachedSrc to unattachedSnk in DRP
     tOverPDDebounce = tPDDebounceMax;                                  // enable PD filter timer
-    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);    
+    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);
 }
 
 void updateSourceCurrent(void)
 {
-    blnCurrentUpdate = TRUE; 
-    
+    blnCurrentUpdate = TRUE;
+
     switch(SourceCurrent)
     {
         case utccDefault:
@@ -1501,7 +1501,7 @@ void updateSourceMDACLow(void)
 {
     blnMDACHigh = FALSE;
     blnCurrentUpdate = FALSE;
-            
+
     switch(SourceCurrent)
     {
         case utccDefault:
@@ -1596,12 +1596,12 @@ CCTermType DecodeCCTermination(void)
 CCTermType DecodeCCTerminationSource(void)
 {
     CCTermType Termination = CCTypeUndefined;            // By default set it to undefined
-    
+
     updateSourceMDACHigh();
     platform_delay_10us(25);                                                              // Delay to allow measurement to settle
     DeviceRead(regStatus0, 1, &Registers.Status.byte[4]);
-    
-    if (Registers.Status.COMP == 1)                 
+
+    if (Registers.Status.COMP == 1)
     {
         Termination = CCTypeOpen;
         return Termination;
@@ -1625,11 +1625,11 @@ CCTermType DecodeCCTerminationSource(void)
         }
         return Termination;
     }
-    
+
     updateSourceMDACLow();
     platform_delay_10us(25);                                                              // Delay to allow measurement to settle
     DeviceRead(regStatus0, 1, &Registers.Status.byte[4]);
-    
+
     if(Registers.Status.COMP == 0)
     {
         Termination = CCTypeRa;
@@ -1659,7 +1659,7 @@ CCTermType DecodeCCTerminationSink(void) // Port asserts Rd
     CCTermType Termination;
     platform_delay_10us(25);                                                              // Delay to allow measurement to settle
     DeviceRead(regStatus0, 1, &Registers.Status.byte[4]);
-    
+
     {
         switch (Registers.Status.BC_LVL)            // Determine which level
         {
@@ -1726,7 +1726,7 @@ void ConfigurePortType(UINT8 Control)
 
         setUnattached = TRUE;
     }
-    
+
     if (((Control & 0x04) >> 2) != blnAccSupport)
     {
         if (Control & 0x04)
@@ -1739,7 +1739,7 @@ void ConfigurePortType(UINT8 Control)
         }
         setUnattached = TRUE;
     }
-    
+
     if (((Control & 0x08) >> 3) != blnSrcPreferred)
     {
         if (Control & 0x08)
@@ -1752,7 +1752,7 @@ void ConfigurePortType(UINT8 Control)
         }
         setUnattached = TRUE;
     }
-    
+
     if (((Control & 0x40) >> 5) != blnSnkPreferred)
     {
         if (Control & 0x40)
@@ -1765,12 +1765,12 @@ void ConfigurePortType(UINT8 Control)
         }
         setUnattached = TRUE;
     }
-    
+
     if(setUnattached)
     {
         SetStateDelayUnattached();
     }
-    
+
     value = (Control & 0x30) >> 4;
     if (SourceCurrent != value){
         switch (value)
@@ -1838,7 +1838,7 @@ UINT8 GetTypeCSMControl(void)
         default:                            // If we are not DRP or Source, we are Sink which is a value of zero as initialized
             break;
     }
-    if (blnAccSupport)                      // Set the flag if we support accessories 
+    if (blnAccSupport)                      // Set the flag if we support accessories
         status |= 0x04;
     if (blnSrcPreferred)                    // Set the flag if we prefer Source mode (as a DRP)
         status |= 0x08;
@@ -1860,7 +1860,7 @@ UINT8 GetCCTermination(void)    // Figured out what this is for and correct ~Ric
             status |= ((CC2TermCCDebounce & 0x07) << 4);   // Set the current CC2 termination
         //    if (blnCC2Debounced)                    // Set the flag if the CC2 pin has been debounced
         //        status |= 0x80;
-    
+
     return status;
 }
 
@@ -1916,19 +1916,19 @@ BOOL VbusVSafe0V (void)
 void DetectCCPinSource(void)  //Patch for directly setting states
 {
     CCTermType CCTerm;
-    
+
     Registers.Switches.byte[0] = 0x44;
     DeviceWrite(regSwitches0, 1, &(Registers.Switches.byte[0]));
     CCTerm = DecodeCCTermination();
-    if ((CCTerm >= CCTypeRdUSB) && (CCTerm < CCTypeUndefined))  
+    if ((CCTerm >= CCTypeRdUSB) && (CCTerm < CCTypeUndefined))
     {
         blnCCPinIsCC1 = TRUE;                                                   // The CC pin is CC1
         blnCCPinIsCC2 = FALSE;
         return;
     }
-    
+
     Registers.Switches.byte[0] = 0x88;
-    DeviceWrite(regSwitches0, 1, &(Registers.Switches.byte[0]));  
+    DeviceWrite(regSwitches0, 1, &(Registers.Switches.byte[0]));
     CCTerm = DecodeCCTermination();
     if ((CCTerm >= CCTypeRdUSB) && (CCTerm < CCTypeUndefined))
     {
@@ -1942,7 +1942,7 @@ void DetectCCPinSource(void)  //Patch for directly setting states
 void DetectCCPinSink(void)  //Patch for directly setting states
 {
     CCTermType CCTerm;
-    
+
     Registers.Switches.byte[0] = 0x07;
     DeviceWrite(regSwitches0, 1, &(Registers.Switches.byte[0]));
     CCTerm = DecodeCCTermination();
@@ -1952,9 +1952,9 @@ void DetectCCPinSink(void)  //Patch for directly setting states
         blnCCPinIsCC2 = FALSE;
         return;
     }
-    
+
     Registers.Switches.byte[0] = 0x0B;
-    DeviceWrite(regSwitches0, 1, &(Registers.Switches.byte[0]));  
+    DeviceWrite(regSwitches0, 1, &(Registers.Switches.byte[0]));
     CCTerm = DecodeCCTermination();
     if ((CCTerm > CCTypeRa) && (CCTerm < CCTypeUndefined))
     {
@@ -1967,44 +1967,44 @@ void DetectCCPinSink(void)  //Patch for directly setting states
 
 void resetDebounceVariables(void)
 {
-    CC1TermPrevious = CCTypeUndefined;         
-    CC2TermPrevious = CCTypeUndefined;         
-    CC1TermCCDebounce = CCTypeUndefined;          
-    CC2TermCCDebounce = CCTypeUndefined;         
-    CC1TermPDDebounce = CCTypeUndefined; 
-    CC2TermPDDebounce = CCTypeUndefined; 
-    CC1TermPDDebouncePrevious = CCTypeUndefined; 
-    CC2TermPDDebouncePrevious = CCTypeUndefined; 
+    CC1TermPrevious = CCTypeUndefined;
+    CC2TermPrevious = CCTypeUndefined;
+    CC1TermCCDebounce = CCTypeUndefined;
+    CC2TermCCDebounce = CCTypeUndefined;
+    CC1TermPDDebounce = CCTypeUndefined;
+    CC2TermPDDebounce = CCTypeUndefined;
+    CC1TermPDDebouncePrevious = CCTypeUndefined;
+    CC2TermPDDebouncePrevious = CCTypeUndefined;
 }
 
 void setDebounceVariablesCC1(CCTermType term)
 {
-    CC1TermPrevious = term;             
-    CC1TermCCDebounce = term;           
-    CC1TermPDDebounce = term; 
-    CC1TermPDDebouncePrevious = term; 
+    CC1TermPrevious = term;
+    CC1TermCCDebounce = term;
+    CC1TermPDDebounce = term;
+    CC1TermPDDebouncePrevious = term;
 
 }
 
 void setDebounceVariablesCC2(CCTermType term)
 {
-  
-    CC2TermPrevious = term;         
-    CC2TermCCDebounce = term;         
-    CC2TermPDDebounce = term; 
+
+    CC2TermPrevious = term;
+    CC2TermCCDebounce = term;
+    CC2TermPDDebounce = term;
     CC2TermPDDebouncePrevious = term;
 }
 
 ////////////////////////////////////////////////////////////////////////////
-//                     
+//
 ////////////////////////////////////////////////////////////////////////////
 BOOL GetLocalRegisters(UINT8 * data, INT32 size){  //Returns local registers as data array
     if (size!=23) return FALSE;
-    
+
     /*
      TEST for byte padding
      */
-    
+
 //    INT32 i;
 //    INT8 * pointer = &Registers.Status.byte[0];
 //    for(i=0; i<sizeof(Registers.Status); i++)
@@ -2012,7 +2012,7 @@ BOOL GetLocalRegisters(UINT8 * data, INT32 size){  //Returns local registers as 
 //        *pointer = i;
 //        *pointer++;
 //    }
-    
+
     data[0] = Registers.DeviceID.byte;
     data[1]= Registers.Switches.byte[0];
     data[2]= Registers.Switches.byte[1];
@@ -2036,8 +2036,8 @@ BOOL GetLocalRegisters(UINT8 * data, INT32 size){  //Returns local registers as 
     data[20]=Registers.Status.byte[4];
     data[21]=Registers.Status.byte[5];
     data[22]=Registers.Status.byte[6];
-    
-    return TRUE;    
+
+    return TRUE;
 }
 
 BOOL GetStateLog(UINT8 * data){   // Loads log into byte array
@@ -2046,7 +2046,7 @@ BOOL GetStateLog(UINT8 * data){   // Loads log into byte array
     UINT16 state_temp;
     UINT16 time_tms_temp;
     UINT16 time_s_temp;
-    
+
 //    //Debug:
 //    for(i=0;i<FSC_HOSTCOMM_BUFFER_SIZE;i++)
 //    {
@@ -2056,16 +2056,16 @@ BOOL GetStateLog(UINT8 * data){   // Loads log into byte array
     for(i=0; ((i<entries) && (i<12)); i++)
     {
         ReadStateLog(&TypeCStateLog, &state_temp, &time_tms_temp, &time_s_temp);
-        
+
         data[i*5+1] = state_temp;
         data[i*5+2] = (time_tms_temp>>8);
         data[i*5+3] = (UINT8)time_tms_temp;
         data[i*5+4] = (time_s_temp)>>8;
         data[i*5+5] = (UINT8)time_s_temp;
     }
-    
+
     data[0] = i;    // Send number of log packets
-    
+
 //    if(0 == entries)    // Sends 0 if no packets to send
 //    {
 //        data[0] = 1;
@@ -2073,7 +2073,7 @@ BOOL GetStateLog(UINT8 * data){   // Loads log into byte array
 //        data[2]=StateLog->End;
 //        data[3]=StateLog->Count;
 //    }
-    
+
     return TRUE;
 }
 
@@ -2090,7 +2090,7 @@ void debounceCC(void)
             if(tOverPDDebounce == T_TIMER_DISABLE)                           // Start debounce filter if it is not already enabled
             {
                 tOverPDDebounce = tPDDebounceMax;
-            }        
+            }
         }
     }
     else if(Registers.Switches.MEAS_CC2)                                        // Otherwise we are looking at CC2
@@ -2102,7 +2102,7 @@ void debounceCC(void)
             if(tOverPDDebounce == T_TIMER_DISABLE)                           // Start debounce filter if it is not already enabled
             {
                 tOverPDDebounce = tPDDebounceMax;
-            }        
+            }
         }
     }
     if (tPDDebounce == 0)                                                       // Check to see if our debounce timer has expired...
@@ -2116,7 +2116,7 @@ void debounceCC(void)
     {
         tCCDebounce = tCCDebounceMin;
     }
-    
+
     //CC debounce
     if ((CC1TermPDDebouncePrevious != CC1TermPDDebounce) || (CC2TermPDDebouncePrevious != CC2TermPDDebounce))   //If the PDDebounce values have changed
     {
@@ -2133,7 +2133,7 @@ void debounceCC(void)
         tCCDebounce = T_TIMER_DISABLE;
         tOverPDDebounce = T_TIMER_DISABLE;
     }
-    
+
     if (ToggleTimer == 0)                                                       // If are toggle timer has expired, it's time to swap detection
     {
         if (Registers.Switches.MEAS_CC1)                                        // If we are currently on the CC1 pin...
@@ -2141,17 +2141,17 @@ void debounceCC(void)
         else                                                                    // Otherwise assume we are using the CC2...
             ToggleMeasureCC1();                                                 // So toggle over to look at CC1
         ToggleTimer = tDeviceToggle;                                           // Reset the toggle timer to our default toggling (<tPDDebounce to avoid disconnecting the other side when we remove pull-ups)
-    }    
+    }
 }
 
 void peekCC1Source(void)
 {
     UINT8 saveRegister = Registers.Switches.byte[0];                            // Save current Switches
-    
+
     Registers.Switches.byte[0] = 0x44;                                          //Measure CC2 and set CC Terms
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
     setDebounceVariablesCC1(DecodeCCTerminationSource());
-    
+
     Registers.Switches.byte[0] = saveRegister;                                  // Restore Switches
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
 }
@@ -2159,11 +2159,11 @@ void peekCC1Source(void)
 void peekCC2Source(void)
 {
     UINT8 saveRegister = Registers.Switches.byte[0];                            // Save current Switches
-    
+
     Registers.Switches.byte[0] = 0x88;  //Measure CC2
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
     setDebounceVariablesCC2(DecodeCCTerminationSource());
-    
+
     Registers.Switches.byte[0] = saveRegister;                                  // Restore Switches
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
 }
@@ -2171,11 +2171,11 @@ void peekCC2Source(void)
 void peekCC1Sink(void)
 {
     UINT8 saveRegister = Registers.Switches.byte[0];                            // Save current Switches
-    
-    Registers.Switches.byte[0] = 0x07;                       
+
+    Registers.Switches.byte[0] = 0x07;
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
     setDebounceVariablesCC1(DecodeCCTermination());
-    
+
     Registers.Switches.byte[0] = saveRegister;                                  // Restore Switches
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
 }
@@ -2183,11 +2183,11 @@ void peekCC1Sink(void)
 void peekCC2Sink(void)
 {
     UINT8 saveRegister = Registers.Switches.byte[0];                            // Save current Switches
-    
-    Registers.Switches.byte[0] = 0x0B;                       
+
+    Registers.Switches.byte[0] = 0x0B;
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
     setDebounceVariablesCC2(DecodeCCTermination());
-    
+
     Registers.Switches.byte[0] = saveRegister;                                  // Restore Switches
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
 }
@@ -2198,7 +2198,7 @@ void checkForAccessory(void)
     DeviceWrite(regControl2, 1, &Registers.Control.byte[2]);
     peekCC1Source();
     peekCC2Source();
-    
+
     if((CC1TermPrevious > CCTypeOpen) && (CC2TermPrevious > CCTypeOpen))    // Transition to AttachWaitAccessory if not open on both pins
     {
         SetStateAttachWaitAccessory();
@@ -2311,20 +2311,20 @@ void ProcessLocalRegisterRequest(UINT8* MsgBuffer, UINT8* retBuffer)  // Send lo
         retBuffer[1] = 0x01;             // Return that the version is not recognized
         return;
     }
-    
+
     GetLocalRegisters(&retBuffer[3], 23);  // Writes local registers to send buffer [3] - [25]
 }
 
 void ProcessSetTypeCState(UINT8* MsgBuffer, UINT8* retBuffer)   // Set state machine
 {
     ConnectionState state = MsgBuffer[3];
-        
+
     if (MsgBuffer[1] != 0)
     {
         retBuffer[1] = 0x01;             // Return that the version is not recognized
         return;
     }
-    
+
     switch(state)
     {
         case(Disabled):
@@ -2383,7 +2383,7 @@ void ProcessSetTypeCState(UINT8* MsgBuffer, UINT8* retBuffer)   // Set state mac
             break;
         default:
             SetStateDelayUnattached();
-            break;       
+            break;
     }
 }
 
@@ -2400,7 +2400,7 @@ void ProcessReadTypeCStateLog(UINT8* MsgBuffer, UINT8* retBuffer)
         retBuffer[1] = 0x01;             // Return that the version is not recognized
         return;
     }
-    
+
     GetStateLog(&retBuffer[3]);   // Designed for 64 byte buffer
 }
 

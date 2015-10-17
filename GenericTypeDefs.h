@@ -93,5 +93,5 @@ typedef __u64               UINT64;                                             
 #undef __EXTENSION
 
 #endif
- 
+
 #endif /* _FUSB30X_GENERIC_TYPE_DEFS_H_ */

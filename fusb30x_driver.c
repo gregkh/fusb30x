@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   fusb30x_driver.c
  * Author: Tim Bremm <tim.bremm@fairchildsemi.com>
  * Company: Fairchild Semiconductor
@@ -42,7 +42,7 @@ static int fusb30x_probe (struct i2c_client* client,
                           const struct i2c_device_id* id)
 {
 	int ret = 0;
-	struct fusb30x_chip* chip; 
+	struct fusb30x_chip* chip;
 	struct i2c_adapter* adapter;
 
 	if (!client) {

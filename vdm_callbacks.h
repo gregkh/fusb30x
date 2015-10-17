@@ -31,7 +31,7 @@
  */
 #ifndef __DPM_EMULATION_H__
 #define __DPM_EMULATION_H__
- 
+
 #include "platform.h"
 #include "vdm_types.h"
 #include "PD_Types.h"

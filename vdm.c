@@ -50,14 +50,14 @@ INT32 initializeVdm() {
 	vdm_timeout = FALSE;
     ExpectingVdmResponse = FALSE;
     initializeDp();
-    
+
 	return 0;
 }
 
-// call this routine to issue Discover Identity commands 
+// call this routine to issue Discover Identity commands
 // Discover Identity only valid for SOP/SOP'
 // returns 0 if successful
-// returns >0 if not SOP or SOP', or if Policy State is wrong 
+// returns >0 if not SOP or SOP', or if Policy State is wrong
 INT32 requestDiscoverIdentity(SopType sop) {
 	doDataObject_t __vdmh;
 	UINT32 __length = 1;
@@ -169,7 +169,7 @@ INT32 requestSendAttention(SopType sop, UINT16 svid, UINT8 mode) {
 	UINT32 __length = 1;
 	UINT32 __arr[__length];
     PolicyState_t __n_pe;
-    
+
 	originalPolicyState = PolicyState;
 	__n_pe = peUfpVdmAttentionRequest;
 	
@@ -193,25 +193,25 @@ INT32 requestSendAttention(SopType sop, UINT16 svid, UINT8 mode) {
 INT32 processDiscoverIdentity(SopType sop, UINT32* arr_in, UINT32 length_in) {
     doDataObject_t  __vdmh_in;
 	doDataObject_t 	__vdmh_out;
-    
+
 	IdHeader		__idh;
 	CertStatVdo		__csvdo;
     Identity        __id;
     ProductVdo      __pvdo;
-    
+
 	UINT32 			__arr[7];
-	UINT32          __length; 
-    
+	UINT32          __length;
+
     BOOL            __result;
-    
+
     __vdmh_in.object = arr_in[0];
-            
+
     /* Must NAK or not respond to Discover ID with wrong SVID */
     if (__vdmh_in.SVDM.SVID != PD_SID) return -1;
-    
-    if (__vdmh_in.SVDM.CommandType == INITIATOR) { 
 
-        
+    if (__vdmh_in.SVDM.CommandType == INITIATOR) {
+
+
         if ((sop == SOP_TYPE_SOP) && ((PolicyState == peSourceReady) || (PolicyState == peSinkReady))) {
         	originalPolicyState = PolicyState;
         	PolicyState = peUfpVdmGetIdentity;
@@ -288,11 +288,11 @@ INT32 processDiscoverIdentity(SopType sop, UINT32* arr_in, UINT32 length_in) {
 		if ((PolicyState != peDfpUfpVdmIdentityRequest) &&
 			(PolicyState != peDfpCblVdmIdentityRequest) &&
 			(PolicyState != peSrcVdmIdentityRequest)) return 0;
-						                
+						
 		// Discover Identity responses should have at least VDM Header, ID Header, and Cert Stat VDO
 		if (length_in < MIN_DISC_ID_RESP_SIZE) {
 			PolicyState = originalPolicyState;
-			return 1; 
+			return 1;
 		}
 		if ((PolicyState == peDfpUfpVdmIdentityRequest) && (sop == SOP_TYPE_SOP)) {
 			if (__vdmh_in.SVDM.CommandType == RESPONDER_ACK) {
@@ -337,7 +337,7 @@ INT32 processDiscoverIdentity(SopType sop, UINT32* arr_in, UINT32 length_in) {
 				__id.has_ama_vdo = TRUE;
 				__id.ama_vdo = getAmaVdo(arr_in[4]); // !!! assuming it is after Product VDO
 			}
-		} 
+		}
 
 		__result =      (PolicyState == peDfpUfpVdmIdentityAcked) ||
 						(PolicyState == peDfpCblVdmIdentityAcked) ||
@@ -354,22 +354,22 @@ INT32 processDiscoverIdentity(SopType sop, UINT32* arr_in, UINT32 length_in) {
 INT32 processDiscoverSvids(SopType sop, UINT32* arr_in, UINT32 length_in) {
     doDataObject_t  __vdmh_in;
 	doDataObject_t 	__vdmh_out;
-    
+
 	SvidInfo        __svid_info;
-    
+
     UINT32          __i;
     UINT16          __top16;
-    UINT16          __bottom16;    
+    UINT16          __bottom16;
     BOOL            __found_end;
 
 	UINT32 			__arr[7];
-	UINT32          __length; 
-    
+	UINT32          __length;
+
     __vdmh_in.object = arr_in[0];
-    
+
     /* Must NAK or not respond to Discover SVIDs with wrong SVID */
     if (__vdmh_in.SVDM.SVID != PD_SID) return -1;
-    
+
     if (__vdmh_in.SVDM.CommandType == INITIATOR) {
         if ((sop == SOP_TYPE_SOP) && ((PolicyState == peSourceReady) || (PolicyState == peSinkReady))) {
 			originalPolicyState = PolicyState;
@@ -413,7 +413,7 @@ INT32 processDiscoverSvids(SopType sop, UINT32* arr_in, UINT32 length_in) {
 			if (__svid_info.num_svids > MAX_NUM_SVIDS) {
 				PolicyState = originalPolicyState;
 				return 1;
-			} 
+			}
 
 			for (i = 0; i < __svid_info.num_svids; i++) {
 				// check if i is even
@@ -441,7 +441,7 @@ INT32 processDiscoverSvids(SopType sop, UINT32* arr_in, UINT32 length_in) {
         if (PolicyState != peDfpVdmSvidsRequest) {
 			return 1;
 		} else if (__vdmh_in.SVDM.CommandType == RESPONDER_ACK) {
-			for (__i = 1; __i < length_in; __i++) { 
+			for (__i = 1; __i < length_in; __i++) {
 				__top16 = 	(arr_in[__i] >> 16) & 0x0000FFFF;
 				__bottom16 =	(arr_in[__i] >>  0) & 0x0000FFFF;
 
@@ -452,7 +452,7 @@ INT32 processDiscoverSvids(SopType sop, UINT32* arr_in, UINT32 length_in) {
 				} else {
 					__svid_info.svids[2*(__i-1)] = __top16;
 					__svid_info.num_svids += 1;
-				} 
+				}
 				// if bottom 16 bits are 0 we're done getting SVIDs
 				if (__bottom16 == 0x0000) {
 					__found_end = TRUE;
@@ -467,9 +467,9 @@ INT32 processDiscoverSvids(SopType sop, UINT32* arr_in, UINT32 length_in) {
 			PolicyState = peDfpVdmSvidsNaked;
 		}
 						
-		vdmm.inform_svids(	PolicyState == peDfpVdmSvidsAcked, 
+		vdmm.inform_svids(	PolicyState == peDfpVdmSvidsAcked,
 								sop, __svid_info);
-        
+
         ExpectingVdmResponse = FALSE;
         VdmTimer = 0;
         VdmTimerStarted = FALSE;
@@ -481,13 +481,13 @@ INT32 processDiscoverSvids(SopType sop, UINT32* arr_in, UINT32 length_in) {
 INT32 processDiscoverModes(SopType sop, UINT32* arr_in, UINT32 length_in) {
     doDataObject_t  __vdmh_in;
 	doDataObject_t 	__vdmh_out;
-    
+
     ModesInfo       __modes_info = {0};
-    
+
     UINT32          __i;
 	UINT32 			__arr[7];
-	UINT32          __length; 
-    
+	UINT32          __length;
+
     __vdmh_in.object = arr_in[0];
     if (__vdmh_in.SVDM.CommandType == INITIATOR) {
         if ((sop == SOP_TYPE_SOP) && ((PolicyState == peSourceReady) || (PolicyState == peSinkReady))) {	
@@ -508,7 +508,7 @@ INT32 processDiscoverModes(SopType sop, UINT32* arr_in, UINT32 length_in) {
 		} else {
 			return 1;
 		}
-                                                
+
 		__vdmh_out.SVDM.SVID 		= __vdmh_in.SVDM.SVID;			// reply with SVID we're being asked about
 		__vdmh_out.SVDM.VDMType 	= STRUCTURED_VDM;			// Discovery Modes is Structured
 		__vdmh_out.SVDM.Version     = STRUCTURED_VDM_VERSION;	// stick the vdm version in
@@ -551,9 +551,9 @@ INT32 processDiscoverModes(SopType sop, UINT32* arr_in, UINT32 length_in) {
 				PolicyState = peDfpVdmModesAcked;
 			} else {
 				PolicyState = peDfpVdmModesNaked;
-			} 
+			}
 
-			vdmm.inform_modes(	PolicyState == peDfpVdmModesAcked, 
+			vdmm.inform_modes(	PolicyState == peDfpVdmModesAcked,
 									sop, __modes_info);
             ExpectingVdmResponse = FALSE;
             VdmTimer = 0;
@@ -568,11 +568,11 @@ INT32 processDiscoverModes(SopType sop, UINT32* arr_in, UINT32 length_in) {
 INT32 processEnterMode(SopType sop, UINT32* arr_in, UINT32 length_in) {
     doDataObject_t  __svdmh_in;
 	doDataObject_t 	__svdmh_out;
-    
+
     BOOL            __mode_entered;
 	UINT32 			__arr_out[7];
-	UINT32          __length_out; 
-    
+	UINT32          __length_out;
+
     __svdmh_in.object = arr_in[0];
     if (__svdmh_in.SVDM.CommandType == INITIATOR) {
         if ((sop == SOP_TYPE_SOP) && ((PolicyState == peSourceReady) || (PolicyState == peSinkReady))) {	
@@ -633,11 +633,11 @@ INT32 processEnterMode(SopType sop, UINT32* arr_in, UINT32 length_in) {
 INT32 processExitMode(SopType sop, UINT32* arr_in, UINT32 length_in) {
     doDataObject_t  __vdmh_in;
 	doDataObject_t 	__vdmh_out;
-    
+
 	BOOL            __mode_exited;
 	UINT32 			__arr[7];
-	UINT32          __length; 
-    
+	UINT32          __length;
+
     __vdmh_in.object = arr_in[0];
     if (__vdmh_in.SVDM.CommandType == INITIATOR) {
         if ((sop == SOP_TYPE_SOP) && ((PolicyState == peSourceReady) || (PolicyState == peSinkReady))) {	
@@ -697,7 +697,7 @@ INT32 processExitMode(SopType sop, UINT32* arr_in, UINT32 length_in) {
 			PolicyState = peDfpVdmExitModeAcked;
 			vdmm.exit_mode_result(TRUE, __vdmh_in.SVDM.SVID, __vdmh_in.SVDM.ObjPos);
 			PolicyState = originalPolicyState;
-                    
+
             VdmTimer = 0;
             VdmTimerStarted = FALSE;
 		}
@@ -708,7 +708,7 @@ INT32 processExitMode(SopType sop, UINT32* arr_in, UINT32 length_in) {
 INT32 processAttention(SopType sop, UINT32* arr_in, UINT32 length_in) {
     doDataObject_t     __vdmh_in;
     __vdmh_in.object = arr_in[0];
-    
+
     originalPolicyState = PolicyState;
 	PolicyState = peDfpVdmAttentionRequest;
 	vdmm.inform_attention(__vdmh_in.SVDM.SVID, __vdmh_in.SVDM.ObjPos);
@@ -720,8 +720,8 @@ INT32 processSvidSpecific(SopType sop, UINT32* arr_in, UINT32 length_in) {
     doDataObject_t 	__vdmh_out;
     doDataObject_t 	__vdmh_in;
     UINT32 			__arr[7];
-	UINT32          __length; 
-    
+	UINT32          __length;
+
     __vdmh_in.object = arr_in[0];
     if (__vdmh_in.SVDM.SVID == DP_SID) {
         if (!processDpCommand(arr_in)) {
@@ -758,13 +758,13 @@ INT32 processVdmMessage(SopType sop, UINT32* arr_in, UINT32 length_in) {
 		case DISCOVER_SVIDS		:
             return processDiscoverSvids(sop, arr_in, length_in);
             break;
-		case DISCOVER_MODES		: 
+		case DISCOVER_MODES		:
             return processDiscoverModes(sop, arr_in, length_in);
 			break;
-		case ENTER_MODE			: 
+		case ENTER_MODE			:
 			return processEnterMode(sop, arr_in, length_in);
             break;
-		case EXIT_MODE			: 
+		case EXIT_MODE			:
 			return processExitMode(sop, arr_in, length_in);
 			break;
 		case ATTENTION			:
@@ -893,7 +893,7 @@ void resetPolicyState (VOID) {
     Identity __id = {0}; // fake empty id Discover Identity for NAKs
 	SvidInfo __svid_info = {0}; // etc.
 	ModesInfo __modes_info = {0}; // etc..
-        
+
 	ExpectingVdmResponse = FALSE;
     VdmTimerStarted = FALSE;
 

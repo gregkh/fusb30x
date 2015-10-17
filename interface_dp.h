@@ -18,7 +18,7 @@ VOID ReadDpStatus(UINT8* data);
 /* ^^^^^ Functions in the core to be called by the system ^^^^^ */
 
 /* vvvvv functions for the system to implement vvvvv */
-VOID informStatus(DisplayPortStatus_t stat); 
+VOID informStatus(DisplayPortStatus_t stat);
 VOID updateStatusData(VOID);
 VOID informConfigResult (BOOL success);
 BOOL DpReconfigure(DisplayPortConfig_t config);

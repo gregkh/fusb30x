@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   ComplianceModes.h
  * Author: W0017688
  *
@@ -11,15 +11,15 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
-    
+
+
 #include "TypeC.h"
 #include "platform.h"
 #include "Log.h"
-      
+
 //#define COMPLIANCE_MODES                // Currently unused
 #define tComplianceDRPSwap 40 * 10        // DRP Swap every 40ms
-    
+
 extern DeviceReg_t             Registers;          // Variable holding the current status of the device registers
 extern BOOL                    USBPDActive;        // Variable to indicate whether the USB PD state machine is active or not
 extern BOOL                    USBPDEnabled;       // Variable to indicate whether USB PD is enabled (by the host)

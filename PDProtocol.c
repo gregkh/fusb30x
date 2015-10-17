@@ -129,7 +129,7 @@ void USBPDProtocol(void)
                 break;
             case PRLDisabled:                                                   // In the disabled state, don't do anything
                 break;
-            default:                                                            
+            default:
                 break;
         }
     }
@@ -171,7 +171,7 @@ void ProtocolGetRxPacket(void)
     UINT8 data[3];
     SopType rx_sop;
     UINT8 sop_token;
-    
+
     DeviceRead(regFIFO, 3, &data[0]);                                          // Read the Rx token and two header bytes
     PolicyRxHeader.byte[0] = data[1];
     PolicyRxHeader.byte[1] = data[2];
@@ -268,7 +268,7 @@ void ProtocolTransmitMessage(void)
         SourceCapsUpdated = TRUE;                                               // Set the flag to indicate to the GUI to update the display
     }
     temp_PolicyTxHeader.MessageID = MessageIDCounter;        // Update the tx message id to send
-    
+
     ProtocolTxBuffer[ProtocolTxBytes++] = PACKSYM | (2+(temp_PolicyTxHeader.NumDataObjects<<2));   // Load the PACKSYM token with the number of bytes in the packet
     ProtocolTxBuffer[ProtocolTxBytes++] = temp_PolicyTxHeader.byte[0];               // Load in the first byte of the header
     ProtocolTxBuffer[ProtocolTxBytes++] = temp_PolicyTxHeader.byte[1];               // Load in the second byte of the header
@@ -278,7 +278,7 @@ void ProtocolTransmitMessage(void)
         {
             for (j=0; j<4; j++)                                                 // Loop through each byte in the object
                 ProtocolTxBuffer[ProtocolTxBytes++] = PolicyTxDataObj[i].byte[j];  // Load the actual bytes
-        }        
+        }
     }
     ProtocolLoadEOP();                                                          // Load the CRC, EOP and stop sequence
     if(manualRetries)
@@ -288,9 +288,9 @@ void ProtocolTransmitMessage(void)
     else
     {
         DeviceWrite(regFIFO, ProtocolTxBytes, &ProtocolTxBuffer[0]);                // Commit the FIFO to the device
-        
+
         /* sometimes it's important to check for a received message before sending */
-        if (ProtocolCheckRxBeforeTx) 
+        if (ProtocolCheckRxBeforeTx)
         {
             ProtocolCheckRxBeforeTx = FALSE; // self-clear - one-time deal
             DeviceRead(regInterruptb, 1, &Registers.Status.byte[3]);
@@ -298,12 +298,12 @@ void ProtocolTransmitMessage(void)
             {
                 /* if a message was received, bail */
                 Registers.Status.I_GCRCSENT = 0;
-                ProtocolFlushTxFIFO(); 
+                ProtocolFlushTxFIFO();
                 PDTxStatus = txError;
                 return;
             }
         }
-        
+
         Registers.Control.TX_START = 1;                                             // Set the bit to enable the transmitter
         DeviceWrite(regControl0, 1, &Registers.Control.byte[0]);                    // Commit TX_START to the device
         Registers.Control.TX_START = 0;                                             // Clear this bit, to avoid inadvertently resetting
@@ -348,7 +348,7 @@ void ProtocolVerifyGoodCRC(void)
     UINT32 i, j;
     UINT8 data[3];
     SopType s;
-    
+
     DeviceRead(regFIFO, 3, &data[0]);                                          // Read the Rx token and two header bytes
     PolicyRxHeader.byte[0] = data[1];
     PolicyRxHeader.byte[1] = data[2];
@@ -423,7 +423,7 @@ void ProtocolVerifyGoodCRC(void)
         }
         StoreUSBPDMessage(PolicyRxHeader, &PolicyRxDataObj[0], FALSE, data[0]); // Store the received PD message for the device policy manager (VB GUI)
     }
-    
+
 }
 
 void ProtocolSendGoodCRC(SopType sop)
@@ -433,7 +433,7 @@ void ProtocolSendGoodCRC(SopType sop)
     } else {
         return; // only supporting SOPs today!
     }
-    
+
     ProtocolTxBuffer[ProtocolTxBytes++] = PACKSYM | 0x02;                       // Load in the PACKSYM token with the number of data bytes in the packet
     ProtocolTxBuffer[ProtocolTxBytes++] = PolicyTxHeader.byte[0];               // Load in the first byte of the header
     ProtocolTxBuffer[ProtocolTxBytes++] = PolicyTxHeader.byte[1];               // Load in the second byte of the header
@@ -721,8 +721,8 @@ UINT8 ReadUSBPDBuffer(UINT8* pData, UINT8 bytesAvail)
 {
     UINT8 i, msgSize, bytesRead;
     bytesRead = 0;
-    do 
-    {       
+    do
+    {
         msgSize = GetNextUSBPDMessageSize();                                    // Grab the next message size
 //        *pData++ = USBPDBufStart;                                               // 6
 //        *pData++ = USBPDBufEnd;                                                 // 7
@@ -776,29 +776,29 @@ void manualRetriesTakeTwo(void)
     DeviceWrite(regMaska, 1, &Registers.MaskAdv.byte[0]);
     Registers.MaskAdv.M_GCRCSENT = 1;
     DeviceWrite(regMaskb, 1, &Registers.MaskAdv.byte[1]);
-    
+
     // Make sure interrupts are cleared
     DeviceRead(regInterrupt, 1, &Registers.Status.byte[6]);
     DeviceRead(regInterrupta, 1, &Registers.Status.byte[2]);
     DeviceRead(regInterruptb, 1, &Registers.Status.byte[3]);
     Registers.Status.I_TXSENT = 0;                                              // Clear interrupt
     Registers.Status.I_RETRYFAIL = 0;                                           // Clear interrupt
-     
+
     while(tries)
     {
         // Load TxFIFO
         DeviceWrite(regFIFO, ProtocolTxBytes, &ProtocolTxBuffer[0]);            // Commit the FIFO to the device
-        
+
         // Write start
         Registers.Control.TX_START = 1;                                         // Set the bit to enable the transmitter
         DeviceWrite(regControl0, 1, &Registers.Control.byte[0]);                // Commit TX_START to the device
         Registers.Control.TX_START = 0;                                         // Clear this bit, to avoid inadvertently resetting
-        
+
         // Wait until we get a good CRC or timeout
         while(!platform_get_device_irq_state());                                // Loops until T_TxSent or I_RETRYFAIL
-        
+
         DeviceRead(regInterrupta, 1, &Registers.Status.byte[2]);
-        
+
         if(Registers.Status.I_TXSENT)
         {
             //Success!
@@ -820,7 +820,7 @@ void manualRetriesTakeTwo(void)
             }
         }
     }
-    
+
     // Re-enable Masks
     Registers.Mask.byte = 0x00;
     DeviceWrite(regMask, 1, &Registers.Mask.byte);

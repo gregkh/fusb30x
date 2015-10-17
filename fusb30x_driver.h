@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   fusb30x_driver.h
  * Author: Tim Bremm <tim.bremm@fairchildsemi.com>
  * Company: Fairchild Semiconductor
@@ -13,9 +13,9 @@
 extern "C" {
 #endif
 
-/*******************************************************************************                        
+/*******************************************************************************
  * Platform-specific configuration data
- ******************************************************************************/                        
+ ******************************************************************************/
 #define FUSB30X_I2C_DRIVER_NAME         "fusb302"                                                       // Length must be less than I2C_NAME_SIZE (currently 20, see include/linux/mod_devicetable.h)
 #define FUSB30X_I2C_DEVICETREE_NAME     "fairchild,fusb302"                                             // Must match device tree .compatible string exactly
 #define FUSB30X_I2C_SMBUS_REQUIRED_FUNC (I2C_FUNC_SMBUS_WRITE_BLOCK_DATA | \
@@ -39,9 +39,9 @@ static const struct i2c_device_id fusb30x_i2c_device_id[] = {
 };
 MODULE_DEVICE_TABLE(i2c, fusb30x_i2c_device_id);                                // Used to generate map files used by depmod for module dependencies
 
-/*******************************************************************************                        
+/*******************************************************************************
  * Driver module functions
- ******************************************************************************/                        
+ ******************************************************************************/
 static int __init fusb30x_init(void);                                                                   // Called when driver is inserted into the kernel
 static void __exit fusb30x_exit(void);                                                                  // Called when driver is removed from the kernel
 static int fusb30x_probe(struct i2c_client* client,                                                     // Called when the associated device is added

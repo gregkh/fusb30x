@@ -176,7 +176,7 @@ typedef union {
         unsigned SW_RES:1;
         unsigned :7;
     };
-} regReset_t;    
+} regReset_t;
 
 typedef union {
     UINT8 byte;
@@ -264,7 +264,7 @@ typedef union {
         unsigned TX_EMPTY:1;
         unsigned RX_FULL:1;
         unsigned RX_EMPTY:1;
-        unsigned RXSOP1:1;          
+        unsigned RXSOP1:1;
         unsigned RXSOP2:1;
         // Interrupt
         unsigned I_BC_LVL:1;
@@ -278,7 +278,7 @@ typedef union {
     };
 } regStatus_t;
 
-typedef struct 
+typedef struct
 {
     regDeviceID_t   DeviceID;
     regSwitches_t   Switches;

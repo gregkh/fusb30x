@@ -3,7 +3,7 @@
 void ConfigureVdmResponses(UINT8* bytes) {
     UINT16 _svid = 0;
     UINT32 _mode = 0;
-    
+
     if (*(bytes+2)) {
         svid_enable = TRUE;
     } else {
@@ -70,40 +70,40 @@ void ReadVdmConfiguration(UINT8* data) {
     }
     *(data+16+1) = 0;
     *(data+16+2) = 0;
-    *(data+16+3) = 0; 
+    *(data+16+3) = 0;
 }
 
 
-void configDp (BOOL enabled, UINT32 status) 
-{   
+void configDp (BOOL enabled, UINT32 status)
+{
     DpEnabled = enabled;
     DpStatus.word = status;
 }
 
-void configAutoDpModeEntry (BOOL enabled, UINT32 mask, UINT32 value) 
+void configAutoDpModeEntry (BOOL enabled, UINT32 mask, UINT32 value)
 {
     DpAutoModeEntryEnabled = enabled;
-    DpModeEntryMask.word = mask;    
+    DpModeEntryMask.word = mask;
     DpModeEntryValue.word = value;
 }
 
-void WriteDpControls(UINT8* data) 
+void WriteDpControls(UINT8* data)
 {
     BOOL en;
     BOOL ame_en;
     UINT32 m, v, stat;
-    
+
     m = 0;
     v = 0;
     en = FALSE;
     ame_en = FALSE;
-    
+
     en = *data++ ? TRUE : FALSE;
     stat = (UINT32) *data++;
     stat |= ((UINT32) (*data++) << 8);
     stat |= ((UINT32) (*data++) << 16);
     stat |= ((UINT32) (*data++) << 24);
-    
+
     ame_en = *data++ ? TRUE : FALSE;
     m = (UINT32) *data++;
     m |= ((UINT32) (*data++) << 8);
@@ -113,12 +113,12 @@ void WriteDpControls(UINT8* data)
     v |= ((UINT32) (*data++) << 8);
     v |= ((UINT32) (*data++) << 16);
     v |= ((UINT32) (*data++) << 24);
-    
+
     configDp(en, stat);
     configAutoDpModeEntry(ame_en, m, v);
 }
 
-void ReadDpControls(UINT8* data) 
+void ReadDpControls(UINT8* data)
 {
     *data++ = (UINT8) DpEnabled;
     *data++ = (UINT8) (DpStatus.word);
@@ -136,7 +136,7 @@ void ReadDpControls(UINT8* data)
     *data++ = (UINT8) ((DpModeEntryValue.word >> 24) & 0xFF);
 }
 
-void ReadDpStatus(UINT8* data) 
+void ReadDpStatus(UINT8* data)
 {
     *data++ = (UINT8) (DpConfig.word);
     *data++ = (UINT8) ((DpConfig.word >> 8) & 0xFF);

@@ -1,22 +1,22 @@
 /* platform.h
  *
  * THIS FILE DEFINES EVERY PLATFORM-DEPENDENT ELEMENT THAT THE CORE REQUIRES.
- * 
+ *
  * INSTRUCTIONS FOR THIS FILE:
  * 1. Modify this file with a definition of Generic Type Definitions
  * (INT8, UINT32, etc) Either by include or putting directly in this file.
- * 2. Include this as a header file for your platform.c and implement the 
+ * 2. Include this as a header file for your platform.c and implement the
  * function headers as defined below.
- * 
+ *
  * It is the driver-writer's responsibility to implement each function
  * stub and to allocate/initialize/reserve sufficient system resources.
- * 
+ *
  */
 #ifndef _FSC_PLATFORM_H_
 #define _FSC_PLATFORM_H_
 
 /* PLATFORM_NONE
- * 
+ *
  * This is a set of stubs for no platform in particular.
  */
 #ifdef PLATFORM_NONE
@@ -24,7 +24,7 @@
 #endif // PLATFORM_NONE
 
 /* PLATFORM_PIC32
- * 
+ *
  * This platform is for the Microchip PIC32 microcontroller.
  */
 #ifdef PLATFORM_PIC32
@@ -40,7 +40,7 @@
 #endif // PLATFORM_ARM
 
 /* PLATFORM_LINUX
- * 
+ *
  * This platform is for the Linux kernel driver.
  */
 #ifdef PLATFORM_LINUX
@@ -74,7 +74,7 @@ BOOL platform_get_vbus_lvl1_enable( void );
  *                  pulled low indicating an active interrupt signal.
  ******************************************************************************/
 BOOL platform_get_device_irq_state( void );
-        
+
 /*******************************************************************************
  * Function:        platform_i2c_write
  * Input:           SlaveAddress - Slave device bus address

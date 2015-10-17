@@ -5,15 +5,15 @@ void SetStateAlternateUnattached(void)
 {
     if ((PortType == USBTypeC_DRP) || ((PortType == USBTypeC_Sink) && (blnAccSupport)))   // If we are a DRP or sink supporting accessories
     {
-        SetStateAlternateDRP();                                                      
+        SetStateAlternateDRP();
     }
     else if (PortType == USBTypeC_Source)                                       // If we are strictly a Source
     {
-        SetStateAlternateUnattachedSource();                                         
+        SetStateAlternateUnattachedSource();
     }
     else                                                                        // Otherwise we are a sink
     {
-        SetStateAlternateUnattachedSink();                                           
+        SetStateAlternateUnattachedSink();
     }
 }
 
@@ -21,15 +21,15 @@ void StateMachineAlternateUnattached(void)
 {
     if ((PortType == USBTypeC_DRP) || ((PortType == USBTypeC_Sink) && (blnAccSupport)))   // If we are a DRP or sink supporting accessories
     {
-        StateMachineAlternateDRP();                                                      
+        StateMachineAlternateDRP();
     }
     else if (PortType == USBTypeC_Source)                                       // If we are strictly a Source
     {
-        StateMachineAlternateUnattachedSource();                                         
+        StateMachineAlternateUnattachedSource();
     }
     else                                                                        // Otherwise we are a sink
     {
-        StateMachineAlternateUnattachedSink();                                           
+        StateMachineAlternateUnattachedSink();
     }
 }
 
@@ -37,7 +37,7 @@ void SetStateAlternateDRP(void)
 {
     platform_set_vbus_5v_enable( FALSE );                                       // Disable the 5V output...
     platform_set_vbus_lvl1_enable( FALSE );                                      // Disable the 12V output
-    Registers.Switches.byte[0] = 0x00; 
+    Registers.Switches.byte[0] = 0x00;
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
     while(!VbusVSafe0V());  // waitfor vbus to fall
     ConnState = Unattached;                                         // Set the state machine variable to unattached
@@ -50,20 +50,20 @@ void SetStateAlternateDRP(void)
     USBPDDisable(TRUE);                                            // Disable the USB PD state machine (no need to write Device again since we are doing it here)
     SinkCurrent = utccNone;
     resetDebounceVariables();
-    blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag 
+    blnCCPinIsCC1 = FALSE;                                          // Clear the CC1 pin flag
     blnCCPinIsCC2 = FALSE;                                          // Clear the CC2 pin flag
-    StateTimer = tComplianceDRPSwap;                                         // 
+    StateTimer = tComplianceDRPSwap;                                         //
     tPDDebounce = T_TIMER_DISABLE;                                     // enable the 1st level debounce timer, not used in this state
     tCCDebounce = T_TIMER_DISABLE;                                    // enable the 2nd level debounce timer, not used in this state
     ToggleTimer = tDeviceToggle;                                        // enable the toggle timer
     tOverPDDebounce = tPDDebounceMax;                                  // enable PD filter timer
-    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);    
+    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);
 }
 
 void StateMachineAlternateDRP(void)
 {
     debounceCC();
-    
+
     if(StateTimer == 0)
     {
         AlternateDRPSwap();
@@ -77,23 +77,23 @@ void StateMachineAlternateDRP(void)
         if ((PortType == USBTypeC_Sink) && (blnAccSupport))             // If we are configured as a sink and support accessories...
             checkForAccessory();                                        // Go to the AttachWaitAcc state
         else                                                            // Otherwise we must be configured as a source or DRP
-            SetStateAttachWaitSource();      
+            SetStateAttachWaitSource();
     }
     // NOTE: Remember sourceOrSink refers to CC1 in this funky state - CC2 is opposite
-    else if((CC2TermPrevious >= CCTypeRdUSB) && (CC2TermPrevious <= CCTypeRd3p0) && (sourceOrSink == Sink)) 
+    else if((CC2TermPrevious >= CCTypeRdUSB) && (CC2TermPrevious <= CCTypeRd3p0) && (sourceOrSink == Sink))
     {
         blnCCPinIsCC1 = FALSE;
         blnCCPinIsCC2 = TRUE;
         if ((PortType == USBTypeC_Sink) && (blnAccSupport))             // If we are configured as a sink and support accessories...
             checkForAccessory();                                        // Go to the AttachWaitAcc state
         else                                                            // Otherwise we must be configured as a source or DRP
-            SetStateAttachWaitSource(); 
+            SetStateAttachWaitSource();
     }
     else if((CC1TermPrevious >= CCTypeRdUSB) && (CC1TermPrevious <= CCTypeRd3p0) && (sourceOrSink == Sink))
     {
         blnCCPinIsCC1 = TRUE;
         blnCCPinIsCC2 = FALSE;
-        SetStateAttachWaitSink();     
+        SetStateAttachWaitSink();
     }
     // NOTE: Remember sourceOrSink refers to CC1 in this funky state - CC2 is opposite
     else if((CC2TermPrevious >= CCTypeRdUSB) && (CC2TermPrevious <= CCTypeRd3p0) && (sourceOrSink == Source))
@@ -102,7 +102,7 @@ void StateMachineAlternateDRP(void)
         blnCCPinIsCC2 = TRUE;
         SetStateAttachWaitSink();
     }
-    
+
 }
 
 void AlternateDRPSwap(void)
@@ -117,7 +117,7 @@ void AlternateDRPSwap(void)
     {
         Registers.Switches.byte[0] = 0x46;                              // Enable Pullup1, Pulldown2, and Meas1
         DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);      // Commit the switch state
-        sourceOrSink = Source;        
+        sourceOrSink = Source;
     }
 }
 
@@ -148,7 +148,7 @@ void SetStateAlternateUnattachedSource(void)
     }
     platform_set_vbus_5v_enable( FALSE );                                       // Disable the 5V output...
     platform_set_vbus_lvl1_enable( FALSE );                                      // Disable the 12V output
-    Registers.Switches.byte[0] = 0x00; 
+    Registers.Switches.byte[0] = 0x00;
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]);
     while(!VbusVSafe0V());  // waitfor vbus to fall
     ConnState = UnattachedSource;                                               // Set the state machine variable to unattached
@@ -162,7 +162,7 @@ void SetStateAlternateUnattachedSource(void)
     USBPDDisable(TRUE);                                                         // Disable the USB PD state machine (no need to write Device again since we are doing it here)
     SinkCurrent = utccNone;
     resetDebounceVariables();
-    blnCCPinIsCC1 = FALSE;                                                      // Clear the CC1 pin flag 
+    blnCCPinIsCC1 = FALSE;                                                      // Clear the CC1 pin flag
     blnCCPinIsCC2 = FALSE;                                                      // Clear the CC2 pin flag
     StateTimer = T_TIMER_DISABLE;                                            // Disable the state timer, not used in this state
     tPDDebounce = tPDDebounceMin;                                               // enable the 1st level debounce timer, not used in this state
@@ -170,13 +170,13 @@ void SetStateAlternateUnattachedSource(void)
     ToggleTimer = T_TIMER_DISABLE;                                            // disable the toggle timer
     DRPToggleTimer = T_TIMER_DISABLE;                                                      // Timer to switch from unattachedSrc to unattachedSnk in DRP
     tOverPDDebounce = T_TIMER_DISABLE;                                            // enable PD filter timer
-    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);  
+    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);
 }
 
 void StateMachineAlternateUnattachedSource(void) // CC1 and CC2 are shorted, so we just look for CC1 < 2.6V for Ra/Rd and > 0.2V for no Ra
 {
     debounceCC();
-    
+
     if(blnAccSupport)
     {
         if (CC1TermPrevious == CCTypeRa)
@@ -186,7 +186,7 @@ void StateMachineAlternateUnattachedSource(void) // CC1 and CC2 are shorted, so 
             SetStateAttachWaitSource();
         }
     }
-    
+
     if ((CC1TermPrevious >= CCTypeRdUSB) && (CC1TermPrevious < CCTypeUndefined))    // If the CC1 pin is Rd
     {
         blnCCPinIsCC1 = FALSE;                                                  // Setting both to false will have the next state figure it out
@@ -198,7 +198,7 @@ void StateMachineAlternateUnattachedSource(void) // CC1 and CC2 are shorted, so 
 void StateMachineAlternateUnattachedSink(void)
 {
     debounceCC();
-       
+
     if ((CC1TermPrevious >= CCTypeRdUSB) && (CC1TermPrevious < CCTypeUndefined) && ((CC2TermPrevious == CCTypeRa) || CC2TermPrevious == CCTypeOpen))    // If the CC1 pin is Rd for atleast tPDDebounce...
     {
         blnCCPinIsCC1 = TRUE;                                                   // The CC pin is CC1
@@ -210,17 +210,17 @@ void StateMachineAlternateUnattachedSink(void)
         blnCCPinIsCC1 = FALSE;                                                  // The CC pin is CC2
         blnCCPinIsCC2 = TRUE;
         SetStateAttachWaitSink();                                                  // Go to the Attached.Snk state
-    } 
+    }
 }
 
 void SetStateAlternateUnattachedSink(void)
 {
     platform_set_vbus_5v_enable( FALSE );                                       // Disable the 5V output...
     platform_set_vbus_lvl1_enable( FALSE );                                      // Disable the 12V output
-    Registers.Switches.byte[0] = 0x00; 
+    Registers.Switches.byte[0] = 0x00;
     DeviceWrite(regSwitches0, 1, &Registers.Switches.byte[0]); // Disable the 12V output
     while(!VbusVSafe0V());  // waitfor vbus to fall
-    
+
     ConnState = Unattached;                                                     // Set the state machine variable to unattached
     sourceOrSink = Sink;
     Registers.Switches.byte[0] = 0x07;                                          // Enable both pull-downs and measure on CC1
@@ -230,7 +230,7 @@ void SetStateAlternateUnattachedSink(void)
     USBPDDisable(TRUE);                                                         // Disable the USB PD state machine (no need to write Device again since we are doing it here)
     SinkCurrent = utccNone;
     resetDebounceVariables();
-    blnCCPinIsCC1 = FALSE;                                                      // Clear the CC1 pin flag 
+    blnCCPinIsCC1 = FALSE;                                                      // Clear the CC1 pin flag
     blnCCPinIsCC2 = FALSE;                                                      // Clear the CC2 pin flag
     StateTimer = T_TIMER_DISABLE;                                             // Disable the state timer, not used in this state
     tPDDebounce = tPDDebounceMin;                                               // enable the 1st level debounce timer, not used in this state
@@ -238,7 +238,7 @@ void SetStateAlternateUnattachedSink(void)
     ToggleTimer = T_TIMER_DISABLE;                                            // disable the toggle timer
     DRPToggleTimer = tDeviceToggle;                                             // Timer to switch from unattachedSrc to unattachedSnk in DRP
     tOverPDDebounce = T_TIMER_DISABLE;                                        // enable PD filter timer
-    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S); 
+    WriteStateLog(&TypeCStateLog, ConnState, Timer_tms, Timer_S);
 }
 
 void SetStateAlternateAudioAccessory(void)
@@ -265,17 +265,17 @@ void SetStateAlternateAudioAccessory(void)
 CCTermType AlternateDecodeCCTerminationSource(void)
 {
     CCTermType Termination = CCTypeUndefined;            // By default set it to undefined
-    
+
     Registers.Measure.MDAC = MDAC_2P05V;                                         // Set up DAC threshold to 2.6V
     DeviceWrite(regMeasure, 1, &Registers.Measure.byte);                        // Commit the DAC threshold
     platform_delay_10us(25);                                                    // Delay to allow measurement to settle
     DeviceRead(regStatus0, 1, &Registers.Status.byte[4]);
-    
-    if (Registers.Status.COMP == 1)                 
+
+    if (Registers.Status.COMP == 1)
     {
         Termination = CCTypeOpen;
         return Termination;
-    }    
+    }
     else if(Registers.Status.BC_LVL == 0)
     {
         Termination = CCTypeRa;

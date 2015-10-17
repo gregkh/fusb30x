@@ -42,7 +42,7 @@ struct fusb30x_chip                                 // Contains data required by
     bool gpio_VBus5V_value;                         // true if active, false otherwise
     int gpio_VBusOther;                             // VBus other GPIO pin (eg. VBus 12V) (NOTE: Optional feature - if set to <0 during GPIO init, then feature is disabled)
     bool gpio_VBusOther_value;                      // true if active, false otherwise
-    
+
     /* Threads */
     struct delayed_work init_worker;                // Kicks off our runtime worker
     struct work_struct worker;                      // Main state machine actions

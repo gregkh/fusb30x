@@ -1,9 +1,9 @@
-/* 
+/*
  * File:   Log.h
  * Author: W0017688
  *
  * Created on July 13, 2015, 10:46 AM
- * 
+ *
  * Creates a circular queue to track state transitions and times
  * Log does not overwrite if full - entries are dropped
  */
@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 #include "platform.h"
-    
+
 #define LOG_SIZE 64
 
 typedef struct{

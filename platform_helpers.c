@@ -178,7 +178,7 @@ bool fusb_GPIO_Get_VBusOther(void)
         dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
         return false;
     }
-    
+
     return chip->gpio_VBusOther_value;
 }
 
@@ -621,7 +621,7 @@ bool fusb_IsDeviceValid(void)
         printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
         return FALSE;
     }
-    
+
     // Test to see if we can do a successful I2C read
     if (!fusb_I2C_ReadData((unsigned char)0x01, &val))
     {

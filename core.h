@@ -1,5 +1,5 @@
 /*
- * This file should be included by the platform. It includes all of the 
+ * This file should be included by the platform. It includes all of the
  * functions that the core provides.
  */
 
@@ -44,7 +44,7 @@ VOID core_set_alternate_modes(UINT8* InBuffer, UINT8* OutBuffer);
 VOID core_set_manual_retries(UINT8* InBuffer, UINT8* OutBuffer);
 UINT8 core_get_alternate_modes(VOID);
 UINT8 core_get_manual_retries(VOID);
-    
+
 VOID core_set_state_unattached(VOID);               // Set state machine to unattached so modes update
 
 #endif	/* _FSC_CORE_H */

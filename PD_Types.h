@@ -78,7 +78,7 @@
 #define tSenderResponse         26      * TICK_SCALE_TO_MS
 #define tTypeCSendSourceCap     150     * TICK_SCALE_TO_MS
 #define tSinkWaitCap            2300    * TICK_SCALE_TO_MS
-#define tTypeCSinkWaitCap       500     * TICK_SCALE_TO_MS               
+#define tTypeCSinkWaitCap       500     * TICK_SCALE_TO_MS
 #define tSnkTransition          27      * TICK_SCALE_TO_MS
 #define tPSHardReset            30      * TICK_SCALE_TO_MS
 #define tPSTransition           500     * TICK_SCALE_TO_MS
@@ -255,7 +255,7 @@ typedef enum {
     peSinkSendSoftReset,        // Sink send soft reset
     peSinkTransitionDefault,    // Transition to the default state
     peSinkStartup,              // Initial sink state
-    peSinkDiscovery,            // Sink discovery state 
+    peSinkDiscovery,            // Sink discovery state
     peSinkWaitCaps,             // Sink wait for capabilities state
     peSinkEvaluateCaps,         // Sink state to evaluate the received source capabilities
     peSinkSelectCapability,     // Sink state for selecting a capability
@@ -364,13 +364,13 @@ typedef enum {
     peCblModeExit,				// Exit Mode request received
     peCblModeExitAck,			// Respond with NAK
     peCblModeExitNak,			// Respond with ACK
-            
+
     // ---------- DP States ----------
     peDpRequestStatus,          // Requesting PP Status
-            
+
     LAST_VDM_STATE = peDpRequestStatus,
-    LAST_PE_ST = LAST_VDM_STATE,          // mark the last valid enum value       
-                            
+    LAST_PE_ST = LAST_VDM_STATE,          // mark the last valid enum value
+
     // ---------- BIST Receive Mode --------------------- //
     PE_BIST_Receive_Mode,       // Bist Receive Mode
     PE_BIST_Frame_Received,     // Test Frame received by Protocol layer
@@ -388,7 +388,7 @@ typedef enum {
     PRLTxSendingMessage,        // Pass the message to the FUSB300 and wait for TX_EMPTY or I_COLLISION
     PRLTxWaitForPHYResponse,    // Wait for activity on the CC line or a timeout
     PRLTxVerifyGoodCRC,         // Verify the good CRC message (combine retry, tx error, message id and message sent)
-            
+
     // ------- BIST Receiver Test -------- //
     PRL_BIST_Rx_Reset_Counter,      // Reset BISTErrorCounter and preload PRBS
     PRL_BIST_Rx_Test_Frame,         // Wait for test Frame form PHY
@@ -433,4 +433,4 @@ typedef enum {
 } SopType;	
 
 #endif // __USBPD_TYPES_H__
-    
+

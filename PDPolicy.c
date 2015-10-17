@@ -50,9 +50,9 @@ static UINT8                    USBPDBufStart;                                  
 static UINT8                    USBPDBufEnd;                                    // Pointer to the last byte of the last message
 static BOOL                     USBPDBufOverflow;                               // Flag to indicate that there was a buffer overflow since last read
 StateLog                        PDStateLog;                                     // Log for tracking state transitions and times
-PolicyState_t                   LastPolicyState;                                
+PolicyState_t                   LastPolicyState;
 
-// Device Policy Manager Variables 
+// Device Policy Manager Variables
 BOOL                            USBPDTxFlag;                                    // Flag to indicate that we need to send a message (set by device policy manager)
 BOOL                            IsHardReset;                                    // Variable indicating that a Hard Reset is occurring
 sopMainHeader_t                 PDTransmitHeader;                               // Defintion of the PD packet to send
@@ -198,9 +198,9 @@ void InitializePDPolicyVariables(void)
     AutoVdmState = AUTO_VDM_INIT;
     auto_mode_disc_tracker = 0;
     AutoDpModeEntryObjPos = -1;
-    
+
     ProtocolCheckRxBeforeTx = FALSE;
-    
+
     InitializeStateLog(&PDStateLog);
 }
 
@@ -215,14 +215,14 @@ void USBPDEnable(BOOL DeviceUpdate, BOOL TypeCDFP)
         if (blnCCPinIsCC1) {                                                    // If the CC pin is on CC1
             Registers.Switches.TXCC1 = 1;                                    // Enable the BMC transmitter on CC1
             Registers.Switches.MEAS_CC1 = 1;
-            
+
             Registers.Switches.TXCC2 = 0;                                   // Disable the BMC transmitter on CC2
             Registers.Switches.MEAS_CC2 = 0;
         }
         else if (blnCCPinIsCC2) {                                               // If the CC pin is on CC2
             Registers.Switches.TXCC2 = 1;                                    // Enable the BMC transmitter on CC2
             Registers.Switches.MEAS_CC2 = 1;
-            
+
             Registers.Switches.TXCC1 = 0;                                   // Disable the BMC transmitter on CC1
             Registers.Switches.MEAS_CC1 = 0;
         }
@@ -341,9 +341,9 @@ void USBPDPolicyEngine(void)
     {
         WriteStateLog(&PDStateLog, PolicyState, Timer_tms, Timer_S);
     }
-    
+
     LastPolicyState = PolicyState;
-    
+
     switch (PolicyState)
     {
         case peDisabled:
@@ -364,10 +364,10 @@ void USBPDPolicyEngine(void)
         case peSourceStartup:
             PolicySourceStartup();
             break;
-        case peSourceDiscovery:         
+        case peSourceDiscovery:
             PolicySourceDiscovery();
             break;
-        case peSourceSendCaps:          
+        case peSourceSendCaps:
             PolicySourceSendCaps();
             break;
         case peSourceDisabled:
@@ -485,7 +485,7 @@ void USBPDPolicyEngine(void)
         case peGiveVdm:
             PolicyGiveVdm();
             break;
-            
+
         // ---------- BIST Receive Mode --------------------- //
         case PE_BIST_Receive_Mode:      // Bist Receive Mode
             policyBISTReceiveMode();
@@ -493,12 +493,12 @@ void USBPDPolicyEngine(void)
         case PE_BIST_Frame_Received:    // Test Frame received by Protocol layer
             policyBISTFrameReceived();
             break;
-                
+
         // ---------- BIST Carrier Mode and Eye Pattern ----- //
         case PE_BIST_Carrier_Mode_2:     // BIST Carrier Mode 2
             policyBISTCarrierMode2();
             break;
-            
+
         default:
             if ((PolicyState >= FIRST_VDM_STATE) && (PolicyState <= LAST_VDM_STATE) ) {
                 // valid VDM state
@@ -560,7 +560,7 @@ void PolicySourceSendSoftReset(void)
                 ProtocolMsgRx = FALSE;                                          // Reset the message received flag since we've handled it here
                 if ((PolicyRxHeader.NumDataObjects == 0) && (PolicyRxHeader.MessageType == CMTAccept))  // And it was the Accept...
                 {
-                    PolicyState = peSourceSendCaps;                             // Go to the send caps state 
+                    PolicyState = peSourceSendCaps;                             // Go to the send caps state
                 }
                 else                                                            // Otherwise it was a message that we didn't expect, so...
                     PolicyState = peSourceSendHardReset;                        // Go to the hard reset state
@@ -595,13 +595,13 @@ void PolicySourceStartup(void)
             nTries = 1;                                                       // Disable retries
         }
     }
-                
+
     switch (PolicySubIndex)
     {
         case 0:
             PolicyIsSource = TRUE;                                                      // Set the flag to indicate that we are a source (PRSwaps)
             ResetProtocolLayer(TRUE);                                                   // Reset the protocol layer
-            PRSwapTimer = 0;                                                            // Clear the swap timer 
+            PRSwapTimer = 0;                                                            // Clear the swap timer
             CapsCounter = 0;                                                            // Clear the caps counter
             CollisionCounter = 0;                                                       // Reset the collision counter
             PolicyStateTimer = tVSafe5V;                                        // Setting delay to get to vSafe5V (should actually check)
@@ -648,9 +648,9 @@ void PolicySourceDiscovery(void)
             if ((HardResetCounter > nHardResetCount) && (NoResponseTimer == 0) && (PolicyHasContract == TRUE))
             {                                                                   // If we previously had a contract in place...
                 PolicyState = peErrorRecovery;                                  // Go to the error recovery state since something went wrong
-                PolicySubIndex = 0; 
+                PolicySubIndex = 0;
             }
-            else if ((HardResetCounter > nHardResetCount) && (NoResponseTimer == 0) && (PolicyHasContract == FALSE))     
+            else if ((HardResetCounter > nHardResetCount) && (NoResponseTimer == 0) && (PolicyHasContract == FALSE))
             {                                                                   // Otherwise...
                     PolicyState = peSourceDisabled;                             // Go to the disabled state since we are assuming that there is no PD sink attached
                     PolicySubIndex = 0;                                             // Reset the sub index for the next state
@@ -776,7 +776,7 @@ void PolicySourceNegotiateCap(void)
     if (reqAccept)                                                              // If we have received a valid request...
     {
         PolicyState = peSourceTransitionSupply;                                 // Go to the transition supply state
-        
+
     }
     else                                                                        // Otherwise the request was invalid...
         PolicyState = peSourceCapabilityResponse;                               // Go to the capability response state to send a reject/wait message
@@ -938,7 +938,7 @@ void PolicySourceReady(void)
                         PDTxStatus = txIdle;                                    // Clear the transmitter status
                     }
                     break;
-                case CMTDR_Swap:                                                
+                case CMTDR_Swap:
                     if (PortType == USBTypeC_DRP)                               // Only send if we are configured as a DRP
                     {
                         PolicyState = peSourceSendDRSwap;                       // Issue a DR_Swap message
@@ -970,7 +970,7 @@ void PolicySourceReady(void)
                     PDTxStatus = txIdle;
                     break;
                 case DMTVenderDefined:
-                    PolicySubIndex = 0; 
+                    PolicySubIndex = 0;
                     doVdmCommand();
                     break;
                 default:
@@ -1041,7 +1041,7 @@ void PolicySourceSendPing(void)
 }
 
 void PolicySourceGotoMin(void)
-{           
+{
     if (ProtocolMsgRx)
     {
         ProtocolMsgRx = FALSE;                                                  // Reset the message ready flag since we're handling it here
@@ -1059,7 +1059,7 @@ void PolicySourceGotoMin(void)
             }
         }
     }
-    else 
+    else
     {
         switch (PolicySubIndex)
         {
@@ -1085,7 +1085,7 @@ void PolicySourceGotoMin(void)
             default:
                 PolicySendCommand(CMTPS_RDY, peSourceReady, 0);                     // Send the PS_RDY message and move onto the Source Ready state
                 break;
-        }        
+        }
     }
 }
 
@@ -1785,7 +1785,7 @@ void PolicySinkReady(void)
                     break;
             }
         }
-        else 
+        else
         {
             switch (PolicyRxHeader.MessageType)
             {
@@ -2168,7 +2168,7 @@ void PolicySinkEvaluatePRSwap(void)
                     PolicyState = peErrorRecovery;                              // If we get an error, go to the error recovery state
                 SwapSourceStartTimer = tSwapSourceStart;
             }
-            break;        
+            break;
     }
 }
 
@@ -2728,7 +2728,7 @@ void doVdmCommand(void)
 
     mode_index = 0;
     mode_index = PDTransmitObjects[0].byte[1] & 0x7;
-    
+
     // only SOP today
     sop = SOP_TYPE_SOP;
 
@@ -2741,7 +2741,7 @@ void doVdmCommand(void)
             requestDpConfig(temp);
         }
     }
-    
+
     if (command == DISCOVER_IDENTITY) {
         requestDiscoverIdentity(sop);
     } else if (command == DISCOVER_SVIDS) {
@@ -2790,7 +2790,7 @@ void autoVdmDiscovery (void)
             case AUTO_VDM_INIT:
             case AUTO_VDM_DISCOVER_ID_PP:
                 requestDiscoverIdentity(SOP_TYPE_SOP);
-                AutoVdmState = AUTO_VDM_DISCOVER_SVIDS_PP; 
+                AutoVdmState = AUTO_VDM_DISCOVER_SVIDS_PP;
                 break;
             case AUTO_VDM_DISCOVER_SVIDS_PP:
                 requestDiscoverSvids(SOP_TYPE_SOP);
@@ -2801,7 +2801,7 @@ void autoVdmDiscovery (void)
                     AutoVdmState = AUTO_VDM_ENTER_DP_MODE_PP;
                     auto_mode_disc_tracker = 0;
                 } else {
-                    requestDiscoverModes(SOP_TYPE_SOP, core_svid_info.svids[auto_mode_disc_tracker]); 
+                    requestDiscoverModes(SOP_TYPE_SOP, core_svid_info.svids[auto_mode_disc_tracker]);
                     auto_mode_disc_tracker++;
                 }
                 break;
@@ -2830,7 +2830,7 @@ void resetLocalHardware(void)
 {
     UINT8 data = 0x20;
     DeviceWrite(regReset, 1, &data);   // Reset PD
-    
+
     DeviceRead(regSwitches1, 1, &Registers.Switches.byte[1]);  // Re-read PD Registers
     DeviceRead(regSlice, 1, &Registers.Slice.byte);
     DeviceRead(regControl0, 1, &Registers.Control.byte[0]);
@@ -2840,7 +2840,7 @@ void resetLocalHardware(void)
     DeviceRead(regMaska, 1, &Registers.MaskAdv.byte[0]);
     DeviceRead(regMaskb, 1, &Registers.MaskAdv.byte[1]);
     DeviceRead(regStatus0a, 2, &Registers.Status.byte[0]);
-    DeviceRead(regStatus0, 2, &Registers.Status.byte[4]);    
+    DeviceRead(regStatus0, 2, &Registers.Status.byte[4]);
 }
 
 void processDMTBIST(void)
@@ -2868,7 +2868,7 @@ BOOL GetPDStateLog(UINT8 * data){   // Loads log into byte array
     UINT16 state_temp;
     UINT16 time_tms_temp;
     UINT16 time_s_temp;
-    
+
 //    //Debug:
 //    for(i=0;i<FSC_HOSTCOMM_BUFFER_SIZE;i++)
 //    {
@@ -2878,14 +2878,14 @@ BOOL GetPDStateLog(UINT8 * data){   // Loads log into byte array
     for(i=0; ((i<entries) && (i<12)); i++)
     {
         ReadStateLog(&PDStateLog, &state_temp, &time_tms_temp, &time_s_temp);
-        
+
         data[i*5+1] = state_temp;
         data[i*5+2] = (time_tms_temp>>8);
         data[i*5+3] = (UINT8)time_tms_temp;
         data[i*5+4] = (time_s_temp)>>8;
         data[i*5+5] = (UINT8)time_s_temp;
     }
-    
+
     data[0] = i;    // Send number of log packets
 
 //    if(0 == entries)    // Sends 0 if no packets to send
@@ -2895,7 +2895,7 @@ BOOL GetPDStateLog(UINT8 * data){   // Loads log into byte array
 //        data[2]=StateLog->End;
 //        data[3]=StateLog->Count;
 //    }
-        
+
     return TRUE;
 }
 
@@ -2906,7 +2906,7 @@ void ProcessReadPDStateLog(UINT8* MsgBuffer, UINT8* retBuffer)
         retBuffer[1] = 0x01;             // Return that the version is not recognized
         return;
     }
-    
+
     GetPDStateLog(&retBuffer[3]);   // Designed for 64 byte buffer
 }
 

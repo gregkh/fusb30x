@@ -21,7 +21,7 @@ VOID core_initialize_config(VOID)
     InitializePDProtocolVariables();                // Initialize the USB PD variables
     InitializePDPolicyVariables();                  // Initialize the USB PD variables
     InitializeTypeC();
-    
+
     /* TODO, config */
 }
 
@@ -76,7 +76,7 @@ VOID core_set_vbus_transition_time(UINT32 time_ms)
     SetVbusTransitionTime(time_ms);
 }
 
-VOID core_configure_port_type(UINT8 config) 
+VOID core_configure_port_type(UINT8 config)
 {
     ConfigurePortType(config);
 }
@@ -132,12 +132,12 @@ VOID core_process_typec_pd_status(UINT8* InBuffer, UINT8* OutBuffer)
 
 VOID core_process_typec_pd_control(UINT8* InBuffer, UINT8* OutBuffer)
 {
-    ProcessTypeCPDControl(InBuffer, OutBuffer);  
+    ProcessTypeCPDControl(InBuffer, OutBuffer);
 }
 
 VOID core_process_local_register_request(UINT8* InBuffer, UINT8* OutBuffer)
 {
-    ProcessLocalRegisterRequest(InBuffer, OutBuffer);   
+    ProcessLocalRegisterRequest(InBuffer, OutBuffer);
 }
 
 VOID core_process_set_typec_state(UINT8* InBuffer, UINT8* OutBuffer)
@@ -147,7 +147,7 @@ VOID core_process_set_typec_state(UINT8* InBuffer, UINT8* OutBuffer)
 
 VOID core_process_read_typec_state_log(UINT8* InBuffer, UINT8* OutBuffer)
 {
-   ProcessReadTypeCStateLog(InBuffer, OutBuffer); 
+   ProcessReadTypeCStateLog(InBuffer, OutBuffer);
 }
 
 VOID core_process_read_pd_state_log(UINT8* InBuffer, UINT8* OutBuffer)
@@ -174,7 +174,7 @@ UINT8 core_get_manual_retries(VOID)
 {
     return getManualRetries();
 }
-    
+
 VOID core_set_state_unattached(VOID)
 {
     SetStateUnattached();

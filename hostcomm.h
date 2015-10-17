@@ -102,7 +102,7 @@ void fusb_hc_Handle_I2CRead(u8* inBuf, u8* outBuf);
 
 /*******************************************************************************
 * Function:        fusb_hc_Handle_I2CWrite
-* Input:           inBuf: Input buffer to parse. 
+* Input:           inBuf: Input buffer to parse.
 *                       inBuf[1]: Start of address range to write to
 *                       inBuf[2]: Num bytes to write
 *                       inBuf[3.. inBuf[1]]: Data to write

@@ -29,7 +29,7 @@
 #define __FSC_VDM_CALLBACKS_DEFS_H__
 /*
  * This file defines types for callbacks that the VDM block will use.
- * The intention is for the user to define functions that return data 
+ * The intention is for the user to define functions that return data
  * that VDM messages require, ex whether or not to enter a mode.
  */
 

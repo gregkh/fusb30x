@@ -48,7 +48,7 @@ Identity vdmRequestIdentityInfo() {
         id.id_header.modal_op_supported = 1;
     } else {
         id.id_header.modal_op_supported = 0;
-    }    
+    }
     id.nack = FALSE;
     return id;
 }
@@ -109,15 +109,15 @@ BOOL vdmModeExitRequest(UINT16 svid, UINT32 mode_index) {
 	return FALSE;
 }
 
-BOOL vdmEnterModeResult(BOOL success, UINT16 svid, UINT32 mode_index) {             
+BOOL vdmEnterModeResult(BOOL success, UINT16 svid, UINT32 mode_index) {
     if (AutoDpModeEntryObjPos > 0) {
         AutoDpModeEntryObjPos = 0;
     }
-    
+
     if (svid == DP_SID) {
         DpModeEntered = mode_index;
     }
-                
+
 	return TRUE;
 }
 
@@ -136,14 +136,14 @@ void vdmInformSvids(BOOL success, SopType sop, SvidInfo svid_info) {
         INT32 i;
         core_svid_info.num_svids = svid_info.num_svids;
         for (i = 0; (i < svid_info.num_svids) && (i < MAX_NUM_SVIDS); i++) {
-            core_svid_info.svids[i] = svid_info.svids[i]; 
+            core_svid_info.svids[i] = svid_info.svids[i];
         }
     }
 }
 
 void vdmInformModes(BOOL success, SopType sop, ModesInfo modes_info) {
     INT32 i;
-    
+
     if (modes_info.svid == DP_SID && modes_info.nack == FALSE) {
         for (i = 0; i < modes_info.num_modes; i++) {
             if (dpEvaluateModeEntry(modes_info.modes[i])) {
