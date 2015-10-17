@@ -1,5 +1,5 @@
 ccflags-y += -DPLATFORM_LINUX
-obj-y   += fusb30x_whole.o
+obj-m   += fusb30x_whole.o
 fusb30x_whole-objs :=	fusb30x_driver.o \
 			fusb30x_global.o \
 			platform.o \
@@ -28,6 +28,9 @@ all: module
 
 module:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD)
+
+check:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) C=2 CF="-D__CHECK_ENDIAN__"
 
 clean:
 	rm -f *.o *~ .depend .*.cmd *.ko *.mod.c
