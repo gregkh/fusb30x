@@ -147,7 +147,6 @@ CCTermType DecodeCCTermination(VOID);
 CCTermType DecodeCCTerminationSource(VOID);
 CCTermType DecodeCCTerminationSink(VOID);
 VOID UpdateSinkCurrent(CCTermType Termination);
-VOID ConfigurePortType(UINT8 Control);
 VOID UpdateCurrentAdvert(UINT8 Current);
 VOID GetDeviceTypeCStatus(UINT8 abytData[]);
 UINT8 GetTypeCSMControl(VOID);

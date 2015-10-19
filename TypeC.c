@@ -1703,7 +1703,7 @@ void UpdateSinkCurrent(CCTermType Termination)
 //                     Externally Accessible Routines
 /////////////////////////////////////////////////////////////////////////////
 
-void ConfigurePortType(UINT8 Control)
+static void ConfigurePortType(UINT8 Control)
 {
     UINT8 value;
     BOOL setUnattached = FALSE;
