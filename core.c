@@ -15,16 +15,6 @@ VOID core_initialize(VOID)
     InitializeTypeC();
 }
 
-VOID core_initialize_config(VOID)
-{
-    InitializeTypeCVariables();                     // Initialize the TypeC variables for the state machine
-    InitializePDProtocolVariables();                // Initialize the USB PD variables
-    InitializePDPolicyVariables();                  // Initialize the USB PD variables
-    InitializeTypeC();
-
-    /* TODO, config */
-}
-
 /*
  * Call this function to enable or disable the core Type-C State Machine.
  * TRUE  -> enable the core state machine
@@ -71,25 +61,10 @@ UINT8 core_get_rev_upper(VOID)
     return FSC_TYPEC_CORE_FW_REV_UPPER;
 }
 
-VOID core_set_vbus_transition_time(UINT32 time_ms)
-{
-    SetVbusTransitionTime(time_ms);
-}
-
-VOID core_configure_port_type(UINT8 config)
-{
-    ConfigurePortType(config);
-}
-
 VOID core_enable_pd(BOOL enable)
 {
     if (enable == TRUE) EnableUSBPD();
     else                DisableUSBPD();
-}
-
-VOID core_set_source_caps(UINT8* buf)
-{
-    WriteSourceCapabilities(buf);
 }
 
 VOID core_get_source_caps(UINT8* buf)
@@ -97,20 +72,11 @@ VOID core_get_source_caps(UINT8* buf)
     ReadSourceCapabilities(buf);
 }
 
-VOID core_set_sink_caps(UINT8* buf)
-{
-    WriteSinkCapabilities(buf);
-}
-
 VOID core_get_sink_caps(UINT8* buf)
 {
     ReadSinkCapabilities(buf);
 }
 
-VOID core_set_sink_req(UINT8* buf)
-{
-    WriteSinkRequestSettings(buf);
-}
 VOID core_get_sink_req(UINT8* buf)
 {
     ReadSinkRequestSettings(buf);
@@ -153,16 +119,6 @@ VOID core_process_read_typec_state_log(UINT8* InBuffer, UINT8* OutBuffer)
 VOID core_process_read_pd_state_log(UINT8* InBuffer, UINT8* OutBuffer)
 {
     ProcessReadPDStateLog(InBuffer, OutBuffer);
-}
-
-VOID core_set_alternate_modes(UINT8* InBuffer, UINT8* OutBuffer)
-{
-    setAlternateModes(InBuffer[3]);
-}
-
-VOID core_set_manual_retries(UINT8* InBuffer, UINT8* OutBuffer)
-{
-    setManualRetries(InBuffer[4]);
 }
 
 UINT8 core_get_alternate_modes(VOID)
