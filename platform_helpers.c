@@ -31,205 +31,183 @@
 
 int fusb_InitializeGPIO(void)
 {
-    int ret = 0;
-    struct device_node* node;
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return -ENOMEM;
-    }
-    /* Get our device tree node */
-    node = chip->client->dev.of_node;
+	int ret = 0;
+	struct device_node* node;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return -ENOMEM;
+	}
+	/* Get our device tree node */
+	node = chip->client->dev.of_node;
 
-    /* Get our GPIO pins from the device tree, and then set their direction (input/output) */
-    chip->gpio_IntN = of_get_named_gpio(node, FUSB_DT_GPIO_INTN, 0);
-    if (chip->gpio_IntN < 0 || gpio_is_valid(chip->gpio_IntN) < 0)
-    {
-        dev_err(&chip->client->dev, "%s - Error: Could not get GPIO for Int_N! Error code: %d\n", __func__, chip->gpio_IntN);
-        return chip->gpio_IntN;
-    }
-    ret = gpio_direction_input(chip->gpio_IntN);
-    if (ret != 0)
-    {
-        dev_err(&chip->client->dev, "%s - Error: Could not set GPIO direction to input for Int_N! Error code: %d\n", __func__, ret);
-        return ret;
-    }
+	/* Get our GPIO pins from the device tree, and then set their direction (input/output) */
+	chip->gpio_IntN = of_get_named_gpio(node, FUSB_DT_GPIO_INTN, 0);
+	if (chip->gpio_IntN < 0 || gpio_is_valid(chip->gpio_IntN) < 0) {
+		dev_err(&chip->client->dev, "%s - Error: Could not get GPIO for Int_N! Error code: %d\n", __func__, chip->gpio_IntN);
+		return chip->gpio_IntN;
+	}
+	ret = gpio_direction_input(chip->gpio_IntN);
+	if (ret != 0) {
+		dev_err(&chip->client->dev, "%s - Error: Could not set GPIO direction to input for Int_N! Error code: %d\n", __func__, ret);
+		return ret;
+	}
 
-    // Export to sysfs
-    gpio_export(chip->gpio_IntN, false);
-    gpio_export_link(&chip->client->dev, FUSB_DT_GPIO_INTN, chip->gpio_IntN);
+	// Export to sysfs
+	gpio_export(chip->gpio_IntN, false);
+	gpio_export_link(&chip->client->dev, FUSB_DT_GPIO_INTN, chip->gpio_IntN);
 
-    // VBus 5V
-    chip->gpio_VBus5V = of_get_named_gpio(node, FUSB_DT_GPIO_VBUS_5V, 0);
-    if (chip->gpio_VBus5V < 0 || gpio_is_valid(chip->gpio_VBus5V) < 0)
-    {
-        dev_err(&chip->client->dev, "%s - Error: Could not get GPIO for VBus5V! Error code: %d\n", __func__, chip->gpio_VBus5V);
-        return chip->gpio_VBus5V;
-    }
-    ret = gpio_direction_output(chip->gpio_VBus5V, chip->gpio_VBus5V_value);
-    if (ret != 0)
-    {
-        dev_err(&chip->client->dev, "%s - Error: Could not set GPIO direction to output for VBus5V! Error code: %d\n", __func__, ret);
-        return ret;
-    }
+	// VBus 5V
+	chip->gpio_VBus5V = of_get_named_gpio(node, FUSB_DT_GPIO_VBUS_5V, 0);
+	if (chip->gpio_VBus5V < 0 || gpio_is_valid(chip->gpio_VBus5V) < 0) {
+		dev_err(&chip->client->dev, "%s - Error: Could not get GPIO for VBus5V! Error code: %d\n", __func__, chip->gpio_VBus5V);
+		return chip->gpio_VBus5V;
+	}
+	ret = gpio_direction_output(chip->gpio_VBus5V, chip->gpio_VBus5V_value);
+	if (ret != 0) {
+		dev_err(&chip->client->dev, "%s - Error: Could not set GPIO direction to output for VBus5V! Error code: %d\n", __func__, ret);
+		return ret;
+	}
 
-    // Export to sysfs
-    gpio_export(chip->gpio_VBus5V, false);
-    gpio_export_link(&chip->client->dev, FUSB_DT_GPIO_VBUS_5V, chip->gpio_VBus5V);
+	// Export to sysfs
+	gpio_export(chip->gpio_VBus5V, false);
+	gpio_export_link(&chip->client->dev, FUSB_DT_GPIO_VBUS_5V, chip->gpio_VBus5V);
 
-    printk(KERN_DEBUG "FUSB  %s - VBus 5V initialized as pin '%d' and is set to '%d'\n", __func__, chip->gpio_VBus5V, chip->gpio_VBus5V_value ? 1 : 0);
+	printk(KERN_DEBUG "FUSB  %s - VBus 5V initialized as pin '%d' and is set to '%d'\n", __func__, chip->gpio_VBus5V, chip->gpio_VBus5V_value ? 1 : 0);
 
-    // VBus other (eg. 12V)
-    // NOTE - This VBus is optional, so if it doesn't exist then fake it like it's on.
-    chip->gpio_VBusOther = of_get_named_gpio(node, FUSB_DT_GPIO_VBUS_OTHER, 0);
-    if (chip->gpio_VBusOther < 0 || gpio_is_valid(chip->gpio_VBusOther) < 0)
-    {
-        // Soft fail - provide a warning, but don't quit because we don't really need this VBus if only using VBus5v
-        printk(KERN_WARNING "%s - Error: Could not get GPIO for VBusOther! Error code: %d\n*** Driver will load without this feature ***\n", __func__, chip->gpio_VBusOther);
-    }
-    else
-    {
-        ret = gpio_direction_output(chip->gpio_VBusOther, chip->gpio_VBusOther_value);
-        if (ret != 0)
-        {
-            dev_err(&chip->client->dev, "%s - Error: Could not set GPIO direction to output for VBus5V! Error code: %d\n", __func__, ret);
-            return ret;
-        }
-    }
+	// VBus other (eg. 12V)
+	// NOTE - This VBus is optional, so if it doesn't exist then fake it like it's on.
+	chip->gpio_VBusOther = of_get_named_gpio(node, FUSB_DT_GPIO_VBUS_OTHER, 0);
+	if (chip->gpio_VBusOther < 0 || gpio_is_valid(chip->gpio_VBusOther) < 0) {
+		// Soft fail - provide a warning, but don't quit because we don't really need this VBus if only using VBus5v
+		printk(KERN_WARNING "%s - Error: Could not get GPIO for VBusOther! Error code: %d\n*** Driver will load without this feature ***\n", __func__, chip->gpio_VBusOther);
+	} else {
+		ret = gpio_direction_output(chip->gpio_VBusOther, chip->gpio_VBusOther_value);
+		if (ret != 0) {
+			dev_err(&chip->client->dev, "%s - Error: Could not set GPIO direction to output for VBus5V! Error code: %d\n", __func__, ret);
+			return ret;
+		}
+	}
 
 #ifdef DEBUG
-    // State Machine Debug Notification
-    // Optional GPIO - toggles each time the state machine is called
-    chip->dbg_gpio_StateMachine = of_get_named_gpio(node, FUSB_DT_GPIO_DEBUG_SM_TOGGLE, 0);
-    if (chip->dbg_gpio_StateMachine < 0 || gpio_is_valid(chip->dbg_gpio_StateMachine) < 0)
-    {
-        // Soft fail - provide a warning, but don't quit because we don't really need this VBus if only using VBus5v
-        printk(KERN_WARNING "%s - Error: Could not get GPIO for VBusOther! Error code: %d\n*** Driver will load without this feature ***\n", __func__, chip->dbg_gpio_StateMachine);
-    }
-    else
-    {
-        ret = gpio_direction_output(chip->dbg_gpio_StateMachine, chip->dbg_gpio_StateMachine_value);
-        if (ret != 0)
-        {
-            dev_err(&chip->client->dev, "%s - Error: Could not set GPIO direction to output for SM Debug Toggle! Error code: %d\n", __func__, ret);
-            return ret;
-        }
+	// State Machine Debug Notification
+	// Optional GPIO - toggles each time the state machine is called
+	chip->dbg_gpio_StateMachine = of_get_named_gpio(node, FUSB_DT_GPIO_DEBUG_SM_TOGGLE, 0);
+	if (chip->dbg_gpio_StateMachine < 0 || gpio_is_valid(chip->dbg_gpio_StateMachine) < 0) {
+	// Soft fail - provide a warning, but don't quit because we don't really need this VBus if only using VBus5v
+		printk(KERN_WARNING "%s - Error: Could not get GPIO for VBusOther! Error code: %d\n*** Driver will load without this feature ***\n", __func__, chip->dbg_gpio_StateMachine);
+	} else {
+		ret = gpio_direction_output(chip->dbg_gpio_StateMachine, chip->dbg_gpio_StateMachine_value);
+		if (ret != 0) {
+			dev_err(&chip->client->dev, "%s - Error: Could not set GPIO direction to output for SM Debug Toggle! Error code: %d\n", __func__, ret);
+			return ret;
+		}
 
-        // Export to sysfs
-        gpio_export(chip->dbg_gpio_StateMachine, false);
-        gpio_export_link(&chip->client->dev, FUSB_DT_GPIO_DEBUG_SM_TOGGLE, chip->dbg_gpio_StateMachine);
-    }
+		// Export to sysfs
+		gpio_export(chip->dbg_gpio_StateMachine, false);
+		gpio_export_link(&chip->client->dev, FUSB_DT_GPIO_DEBUG_SM_TOGGLE, chip->dbg_gpio_StateMachine);
+	}
 #endif  // DEBUG
 
-    return 0;   // Success!
+	return 0;   // Success!
 }
 
 void fusb_GPIO_Set_VBus5v(bool set)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-    }
-    gpio_set_value(chip->gpio_VBus5V, set ? 1 : 0);
-    chip->gpio_VBus5V_value = set;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+	}
+	gpio_set_value(chip->gpio_VBus5V, set ? 1 : 0);
+	chip->gpio_VBus5V_value = set;
 
-    printk(KERN_DEBUG "FUSB  %s - VBus 5V set to: %d\n", __func__, chip->gpio_VBus5V_value ? 1 : 0);
+	printk(KERN_DEBUG "FUSB  %s - VBus 5V set to: %d\n", __func__, chip->gpio_VBus5V_value ? 1 : 0);
 }
 
 void fusb_GPIO_Set_VBusOther(bool set)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-    }
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+	}
 
-    // Only try to set if feature is enabled, otherwise just fake it
-    if (chip->gpio_VBusOther >= 0)
-    {
-        gpio_set_value(chip->gpio_VBusOther, set ? 1 : 0);
-    }
+	// Only try to set if feature is enabled, otherwise just fake it
+	if (chip->gpio_VBusOther >= 0) {
+		gpio_set_value(chip->gpio_VBusOther, set ? 1 : 0);
+	}
 
-    chip->gpio_VBusOther_value = set;
+	chip->gpio_VBusOther_value = set;
 }
 
 bool fusb_GPIO_Get_VBus5v(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return false;
-    }
-    if (chip->gpio_VBus5V < 0)
-    {
-        printk(KERN_DEBUG "FUSB  %s - Error: VBus 5V pin invalid! Pin value: %d\n", __func__, chip->gpio_VBus5V);
-    }
-    return chip->gpio_VBus5V_value;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+
+	if (!chip) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return false;
+	}
+	if (chip->gpio_VBus5V < 0) {
+		printk(KERN_DEBUG "FUSB  %s - Error: VBus 5V pin invalid! Pin value: %d\n", __func__, chip->gpio_VBus5V);
+	}
+	return chip->gpio_VBus5V_value;
 }
 
 bool fusb_GPIO_Get_VBusOther(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return false;
-    }
+	struct fusb30x_chip* chip = fusb30x_GetChip();
 
-    return chip->gpio_VBusOther_value;
+	if (!chip) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return false;
+	}
+
+	return chip->gpio_VBusOther_value;
 }
 
 bool fusb_GPIO_Get_IntN(void)
 {
-    int ret = 0;
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return false;
-    }
-    else
-    {
-        ret = !gpio_get_value(chip->gpio_IntN); // Int_N is active low
-        if (ret < 0)
-        {
-            dev_err(&chip->client->dev, "%s - Error: Could not get GPIO value for gpio_IntN! Error code: %d\n", __func__, ret);
-            return false;
-        }
-        return (ret > 0);
-    }
+	int ret = 0;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+
+	if (!chip) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return false;
+	} else {
+		ret = !gpio_get_value(chip->gpio_IntN); // Int_N is active low
+		if (ret < 0) {
+			dev_err(&chip->client->dev, "%s - Error: Could not get GPIO value for gpio_IntN! Error code: %d\n", __func__, ret);
+			return false;
+		}
+		return (ret > 0);
+	}
 }
 
 #ifdef DEBUG
 void dbg_fusb_GPIO_Set_SM_Toggle(bool set)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-    }
-    gpio_set_value(chip->dbg_gpio_StateMachine, set ? 1 : 0);
-    chip->dbg_gpio_StateMachine_value = set;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
 
-    printk(KERN_DEBUG "FUSB  %s - State machine toggle GPIO set to: %d\n", __func__, chip->dbg_gpio_StateMachine_value ? 1 : 0);
+	if (!chip) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+	}
+	gpio_set_value(chip->dbg_gpio_StateMachine, set ? 1 : 0);
+	chip->dbg_gpio_StateMachine_value = set;
+
+	printk(KERN_DEBUG "FUSB  %s - State machine toggle GPIO set to: %d\n", __func__, chip->dbg_gpio_StateMachine_value ? 1 : 0);
 }
 
 bool dbg_fusb_GPIO_Get_SM_Toggle(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return false;
-    }
-    if (chip->dbg_gpio_StateMachine < 0)
-    {
-        printk(KERN_DEBUG "FUSB  %s - Error: State machine toggle debug pin invalid! Pin number: %d\n", __func__, chip->dbg_gpio_StateMachine);
-    }
-    return chip->dbg_gpio_StateMachine_value;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return false;
+	}
+	if (chip->dbg_gpio_StateMachine < 0) {
+		printk(KERN_DEBUG "FUSB  %s - Error: State machine toggle debug pin invalid! Pin number: %d\n", __func__, chip->dbg_gpio_StateMachine);
+	}
+	return chip->dbg_gpio_StateMachine_value;
 }
 #endif  // DEBUG
 
@@ -673,15 +651,14 @@ void fusb_InitChipData(void)
 ********************************************************************************/
 void _fusb_InitWorker(struct work_struct* delayed_work)
 {
-    struct fusb30x_chip* chip = container_of(delayed_work, struct fusb30x_chip, init_worker.work);
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
+	struct fusb30x_chip* chip = container_of(delayed_work, struct fusb30x_chip, init_worker.work);
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return;
+	}
 
-    // Schedule to kick off the main working thread
-    schedule_work(&chip->worker);
+	// Schedule to kick off the main working thread
+	schedule_work(&chip->worker);
 }
 
 /*******************************************************************************
@@ -692,65 +669,63 @@ void _fusb_InitWorker(struct work_struct* delayed_work)
 ********************************************************************************/
 void _fusb_MainWorker(struct work_struct* work)
 {
-    struct fusb30x_chip* chip = container_of(work, struct fusb30x_chip, worker);
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
+	struct fusb30x_chip* chip = container_of(work, struct fusb30x_chip, worker);
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return;
+	}
 
 #ifdef DEBUG
-    dbg_fusb_GPIO_Set_SM_Toggle(!chip->dbg_gpio_StateMachine_value);    // Optionally toggle debug GPIO when SM is called to measure thread tick rate
+	// Optionally toggle debug GPIO when SM is called to measure thread tick rate
+	dbg_fusb_GPIO_Set_SM_Toggle(!chip->dbg_gpio_StateMachine_value);
 
-    if (chip->dbgSMTicks++ >= U8_MAX)                                   // Tick our state machine tick counter
-    {
-        chip->dbgSMRollovers++;                                         // Record a moderate amount of rollovers
-    }
+	// Tick our state machine tick counter
+	if (chip->dbgSMTicks++ >= U8_MAX) {
+		// Record a moderate amount of rollovers
+		chip->dbgSMRollovers++; 
+	}
 #endif  // DEBUG
 
-    core_state_machine();                                               // Run the state machine
-    schedule_work(&chip->worker);                                       // Reschedule ourselves to run again
+	core_state_machine();                                               // Run the state machine
+	schedule_work(&chip->worker);                                       // Reschedule ourselves to run again
 }
 
 void fusb_InitializeWorkers(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    printk(KERN_DEBUG "FUSB  %s - Initializing threads!\n", __func__);
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	printk(KERN_DEBUG "FUSB  %s - Initializing threads!\n", __func__);
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return;
+	}
 
-    // Initialize our delayed_work and work structs
-    INIT_DELAYED_WORK(&chip->init_worker, _fusb_InitWorker);
-    INIT_WORK(&chip->worker, _fusb_MainWorker);
+	// Initialize our delayed_work and work structs
+	INIT_DELAYED_WORK(&chip->init_worker, _fusb_InitWorker);
+	INIT_WORK(&chip->worker, _fusb_MainWorker);
 }
 
 void fusb_StopThreads(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
-    // Cancel the initial delayed work
-    cancel_delayed_work_sync(&chip->init_worker);
-    flush_delayed_work(&chip->init_worker);
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return;
+	}
+	// Cancel the initial delayed work
+	cancel_delayed_work_sync(&chip->init_worker);
+	flush_delayed_work(&chip->init_worker);
 
-    // Cancel the main worker
-    flush_work(&chip->worker);
-    cancel_work_sync(&chip->worker);
+	// Cancel the main worker
+	flush_work(&chip->worker);
+	cancel_work_sync(&chip->worker);
 }
 
 void fusb_ScheduleWork(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
-    schedule_delayed_work(&chip->init_worker, msecs_to_jiffies(chip->InitDelayMS));
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return;
+	}
+	schedule_delayed_work(&chip->init_worker, msecs_to_jiffies(chip->InitDelayMS));
 }
