@@ -173,25 +173,33 @@ void InitializePDPolicyVariables(void)
     CapsSource[1].FPDOSupply.DualRolePower = 0;                                 // Not used... set to zero
     CapsSource[1].FPDOSupply.SupplyType = 0;                                    // Fixed supply
 
-    CapsHeaderSink.NumDataObjects = 2;                                          // Set the number of power objects to 2
+    CapsHeaderSink.NumDataObjects = 3;                                          // Set the number of power objects to 2
     CapsHeaderSink.PortDataRole = 0;                                            // Set the data role to UFP by default
     CapsHeaderSink.PortPowerRole = 0;                                           // By default, set the device to be a sink
     CapsHeaderSink.SpecRevision = 1;                                            // Set the spec revision to 2.0
     CapsSink[0].FPDOSink.Voltage = 100;                                         // Set 5V for the first supply option
-    CapsSink[0].FPDOSink.OperationalCurrent = 10;                               // Set that our device will consume 100mA for this object
+    CapsSink[0].FPDOSink.OperationalCurrent = 10;                               // Set that our device will consume 100mA for this object (5V Safe)
     CapsSink[0].FPDOSink.DataRoleSwap = 0;                                      // By default, don't enable DR_SWAP
-    CapsSink[0].FPDOSink.USBCommCapable = 0;                                    // By default, USB communications is not allowed
+    CapsSink[0].FPDOSink.USBCommCapable = TRUE;                                 // Enable USB communications
     CapsSink[0].FPDOSink.ExternallyPowered = 0;                                 // By default, we are not externally powered
     CapsSink[0].FPDOSink.HigherCapability = FALSE;                              // By default, don't require more than vSafe5V
     CapsSink[0].FPDOSink.DualRolePower = 0;                                     // By default, don't enable PR_SWAP
 
-    CapsSink[1].FPDOSink.Voltage = 240;                                         // Set 12V for the second supply option
-    CapsSink[1].FPDOSink.OperationalCurrent = 10;                               // Set that our device will consume 100mA for this object
-    CapsSink[1].FPDOSink.DataRoleSwap = 0;                                      // Not used
-    CapsSink[1].FPDOSink.USBCommCapable = 0;                                    // Not used
-    CapsSink[1].FPDOSink.ExternallyPowered = 0;                                 // Not used
-    CapsSink[1].FPDOSink.HigherCapability = 0;                                  // Not used
-    CapsSink[1].FPDOSink.DualRolePower = 0;                                     // Not used
+    CapsSink[1].FPDOSink.Voltage = 100;                                         // Set 5V for the high power capability profile
+    CapsSink[1].FPDOSink.OperationalCurrent = 300;                              // Set that our device will consume 3000mA for this object
+    CapsSink[1].FPDOSink.DataRoleSwap = 0;                                      // By default, don't enable DR_SWAP
+    CapsSink[1].FPDOSink.USBCommCapable = TRUE;                                 // Enable USB communications
+    CapsSink[1].FPDOSink.ExternallyPowered = 0;                                 // By default, we are not externally powered
+    CapsSink[1].FPDOSink.HigherCapability = TRUE;                               // not 5Vsafe profile
+    CapsSink[1].FPDOSink.DualRolePower = 0;                                     // By default, don't enable PR_SWAP
+
+    CapsSink[2].FPDOSink.Voltage = 240;                                         // Set 12V for the second supply option
+    CapsSink[2].FPDOSink.OperationalCurrent = 125;                              // Set that our device will consume 1250mA for this object (15Wats@12V)
+    CapsSink[2].FPDOSink.DataRoleSwap = 0;                                      //
+    CapsSink[2].FPDOSink.USBCommCapable = TRUE;                                 //
+    CapsSink[2].FPDOSink.ExternallyPowered = 0;                                 //
+    CapsSink[2].FPDOSink.HigherCapability = TRUE;                               //
+    CapsSink[2].FPDOSink.DualRolePower = 0;                                     //
 
     InitializeVdmManager();                                                // Initialize VDM Manager
     vdmInitDpm();
