@@ -213,36 +213,31 @@ bool dbg_fusb_GPIO_Get_SM_Toggle(void)
 
 void fusb_GPIO_Cleanup(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return;
+	}
 
-    if (gpio_is_valid(chip->gpio_IntN) >= 0)
-    {
-        gpio_unexport(chip->gpio_IntN);
-        gpio_free(chip->gpio_IntN);
-    }
+	if (gpio_is_valid(chip->gpio_IntN) >= 0) {
+		gpio_unexport(chip->gpio_IntN);
+		gpio_free(chip->gpio_IntN);
+	}
 
-    if (gpio_is_valid(chip->gpio_VBus5V) >= 0)
-    {
-        gpio_unexport(chip->gpio_VBus5V);
-        gpio_free(chip->gpio_VBus5V);
-    }
+	if (gpio_is_valid(chip->gpio_VBus5V) >= 0) {
+		gpio_unexport(chip->gpio_VBus5V);
+		gpio_free(chip->gpio_VBus5V);
+	}
 
-    if (gpio_is_valid(chip->gpio_VBusOther) >= 0)
-    {
-        gpio_free(chip->gpio_VBusOther);
-    }
+	if (gpio_is_valid(chip->gpio_VBusOther) >= 0) {
+		gpio_free(chip->gpio_VBusOther);
+	}
 
 #ifdef DEBUG
-    if (gpio_is_valid(chip->dbg_gpio_StateMachine) >= 0)
-    {
-        gpio_unexport(chip->dbg_gpio_StateMachine);
-        gpio_free(chip->dbg_gpio_StateMachine);
-    }
+	if (gpio_is_valid(chip->dbg_gpio_StateMachine) >= 0) {
+		gpio_unexport(chip->dbg_gpio_StateMachine);
+		gpio_free(chip->dbg_gpio_StateMachine);
+	}
 #endif  // DEBUG
 }
 
@@ -253,71 +248,84 @@ void fusb_GPIO_Cleanup(void)
 /*********************************************************************************************************************/
 bool fusb_I2C_WriteData(unsigned char address, unsigned char length, unsigned char* data)
 {
-    int i = 0;
-    int ret = 0;
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (chip == NULL || chip->client == NULL || data == NULL)               // Sanity check
-    {
-        printk(KERN_ERR "%s - Error: %s is NULL!\n", __func__, (chip == NULL ? "Internal chip structure"
-            : (chip->client == NULL ? "I2C Client"
-            : "Write data buffer")));
-        return false;
-    }
+	int i = 0;
+	int ret = 0;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
 
-    mutex_lock(&chip->lock);
-    // Retry on failure up to the retry limit
-    for (i = 0; i <= chip->numRetriesI2C; i++)
-    {
-        ret = i2c_smbus_write_i2c_block_data(chip->client,                      // Perform the actual I2C write on our client
-                                             address,                           // Register address to write to
-                                             length,                            // Number of bytes to write
-                                             data);                             // Ptr to unsigned char data
-        if (ret < 0)                                                            // Errors report as negative
-        {
-            if (ret == ERANGE) { dev_err(&chip->client->dev, "%s - I2C Error writing byte data. Address: '0x%02x', Return: -ERANGE.  Attempt #%d / %d...\n", __func__, address, i, chip->numRetriesI2C); }
-            else if (ret == EINVAL) { dev_err(&chip->client->dev, "%s - I2C Error writing byte data. Address: '0x%02x', Return: -EINVAL.  Attempt #%d / %d...\n", __func__, address, i, chip->numRetriesI2C); }
-            else { dev_err(&chip->client->dev, "%s - Unexpected I2C error writing byte data. Address: '0x%02x', Return: '%04x'.  Attempt #%d / %d...\n", __func__, address, ret, i, chip->numRetriesI2C); }
-        }
-        else                                                                    // Successful i2c writes should always return 0
-        {
-            break;
-        }
-    }
-    mutex_unlock(&chip->lock);
-    return (ret >= 0);
+	// Sanity check
+	if (chip == NULL || chip->client == NULL || data == NULL) {
+		printk(KERN_ERR "%s - Error: %s is NULL!\n", __func__, (chip == NULL ? "Internal chip structure"
+		    : (chip->client == NULL ? "I2C Client"
+		    : "Write data buffer")));
+		return false;
+	}
+
+	mutex_lock(&chip->lock);
+	// Retry on failure up to the retry limit
+	for (i = 0; i <= chip->numRetriesI2C; i++) {
+		ret = i2c_smbus_write_i2c_block_data(chip->client,                      // Perform the actual I2C write on our client
+					     address,                           // Register address to write to
+					     length,                            // Number of bytes to write
+					     data);                             // Ptr to unsigned char data
+		if (ret < 0) {                                                          // Errors report as negative
+			if (ret == ERANGE) {
+				dev_err(&chip->client->dev,
+					"%s - I2C Error writing byte data. Address: '0x%02x', Return: -ERANGE.  Attempt #%d / %d...\n",
+					__func__, address, i, chip->numRetriesI2C);
+			} else if (ret == EINVAL) {
+				dev_err(&chip->client->dev,
+					"%s - I2C Error writing byte data. Address: '0x%02x', Return: -EINVAL.  Attempt #%d / %d...\n",
+					__func__, address, i, chip->numRetriesI2C);
+			} else {
+				dev_err(&chip->client->dev,
+					"%s - Unexpected I2C error writing byte data. Address: '0x%02x', Return: '%04x'.  Attempt #%d / %d...\n",
+					__func__, address, ret, i, chip->numRetriesI2C);
+			}
+		} else {
+			// Successful i2c writes should always return 0
+			{
+				break;
+			}
+		}
+	}
+	mutex_unlock(&chip->lock);
+	return (ret >= 0);
 }
 
 bool fusb_I2C_ReadData(unsigned char address, unsigned char* data)
 {
-    int i = 0;
-    int ret = 0;
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (chip == NULL || chip->client == NULL || data == NULL)
-    {
-        printk(KERN_ERR "%s - Error: %s is NULL!\n", __func__, (chip == NULL ? "Internal chip structure"
-            : (chip->client == NULL ? "I2C Client"
-            : "read data buffer")));
-        return false;
-    }
-    mutex_lock(&chip->lock);
-    // Retry on failure up to the retry limit
-    for (i = 0; i <= chip->numRetriesI2C; i++)
-    {
-        ret = i2c_smbus_read_byte_data(chip->client, (u8)address);         // Read a byte of data from address
-        if (ret < 0)                                                            // Errors report as negative
-        {
-            if (ret == ERANGE) { dev_err(&chip->client->dev, "%s - I2C Error reading byte data. Address: '0x%02x', Return: -ERANGE.  Attempt #%d / %d...\n", __func__, address, i, chip->numRetriesI2C); }
-            else if (ret == EINVAL) { dev_err(&chip->client->dev, "%s - I2C Error reading byte data. Address: '0x%02x', Return: -EINVAL.  Attempt #%d / %d...\n", __func__, address, i, chip->numRetriesI2C); }
-            else { dev_err(&chip->client->dev, "%s - Unexpected I2C error reading byte data. Address: '0x%02x', Return: '%04x'.  Attempt #%d / %d...\n", __func__, address, ret, i, chip->numRetriesI2C); }
-        }
-        else                                                                    // Successful i2c writes should always return 0
-        {
-            *data = (unsigned char)ret;
-            break;
-        }
-    }
-    mutex_unlock(&chip->lock);
-    return (ret >= 0);
+	int i = 0;
+	int ret = 0;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+
+	if (chip == NULL || chip->client == NULL || data == NULL) {
+		printk(KERN_ERR "%s - Error: %s is NULL!\n", __func__, (chip == NULL ? "Internal chip structure"
+			: (chip->client == NULL ? "I2C Client"
+			: "read data buffer")));
+		return false;
+	}
+	mutex_lock(&chip->lock);
+	// Retry on failure up to the retry limit
+	for (i = 0; i <= chip->numRetriesI2C; i++) {
+		// Read a byte of data from address
+		ret = i2c_smbus_read_byte_data(chip->client, (u8)address);
+			// Errors report as negative
+		if (ret < 0) {
+			if (ret == ERANGE) {
+				dev_err(&chip->client->dev, "%s - I2C Error reading byte data. Address: '0x%02x', Return: -ERANGE.  Attempt #%d / %d...\n", __func__, address, i, chip->numRetriesI2C);
+			} else if (ret == EINVAL) {
+				dev_err(&chip->client->dev, "%s - I2C Error reading byte data. Address: '0x%02x', Return: -EINVAL.  Attempt #%d / %d...\n", __func__, address, i, chip->numRetriesI2C);
+			} else {
+				dev_err(&chip->client->dev, "%s - Unexpected I2C error reading byte data. Address: '0x%02x', Return: '%04x'.  Attempt #%d / %d...\n", __func__, address, ret, i, chip->numRetriesI2C);
+			}
+		} else {
+			// Successful i2c writes should always return 0
+			*data = (unsigned char)ret;
+			break;
+		}
+	}
+	mutex_unlock(&chip->lock);
+	return (ret >= 0);
 }
 
 
@@ -336,114 +344,119 @@ static const unsigned long g_fusb_timer_tick_period_ns = 100000;    // Tick SM e
 ********************************************************************************/
 enum hrtimer_restart _fusb_TimerHandler(struct hrtimer* timer)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return HRTIMER_NORESTART;
-    }
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return HRTIMER_NORESTART;
+	}
 
-    if (!timer)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: High-resolution timer is NULL!\n", __func__);
-        return HRTIMER_NORESTART;
-    }
+	if (!timer) {
+		printk(KERN_ALERT "FUSB  %s - Error: High-resolution timer is NULL!\n", __func__);
+		return HRTIMER_NORESTART;
+	}
 
-    core_tick_at_100us();
+	core_tick_at_100us();
 
 #ifdef DEBUG
-    if (chip->dbgTimerTicks++ >= U8_MAX)
-    {
-        chip->dbgTimerRollovers++;
-    }
+	if (chip->dbgTimerTicks++ >= U8_MAX) {
+		chip->dbgTimerRollovers++;
+	}
 #endif  // DEBUG
 
-    // Reset the timer expiration
-    hrtimer_forward(timer, ktime_get(), ktime_set(0, g_fusb_timer_tick_period_ns));
+	// Reset the timer expiration
+	hrtimer_forward(timer, ktime_get(), ktime_set(0, g_fusb_timer_tick_period_ns));
 
-    return HRTIMER_RESTART;         // Requeue the timer
+	return HRTIMER_RESTART;         // Requeue the timer
 }
 
 void fusb_InitializeTimer(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n",
+		       __func__);
+		return;
+	}
 
-    hrtimer_init(&chip->timer_state_machine, CLOCK_MONOTONIC, HRTIMER_MODE_REL);            // Init the timer structure
-    chip->timer_state_machine.function = _fusb_TimerHandler;                                // Assign the callback to call when time runs out
+	// Init the timer structure
+	hrtimer_init(&chip->timer_state_machine, CLOCK_MONOTONIC,
+		     HRTIMER_MODE_REL);
+	// Assign the callback to call when time runs out
+	chip->timer_state_machine.function = _fusb_TimerHandler;
 
-    printk(KERN_DEBUG "FUSB  %s - Timer initialized!\n", __func__);
+	printk(KERN_DEBUG "FUSB  %s - Timer initialized!\n", __func__);
 }
 
 void fusb_StartTimers(void)
 {
-    ktime_t ktime;
-    struct fusb30x_chip* chip;
+	ktime_t ktime;
+	struct fusb30x_chip* chip;
 
-    chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
-    ktime = ktime_set(0, g_fusb_timer_tick_period_ns);                                      // Convert our timer period (in ns) to ktime
-    hrtimer_start(&chip->timer_state_machine, ktime, HRTIMER_MODE_REL);                     // Start the timer
+	chip = fusb30x_GetChip();
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n",
+		       __func__);
+		return;
+	}
+
+	// Convert our timer period (in ns) to ktime
+	ktime = ktime_set(0, g_fusb_timer_tick_period_ns);
+	// Start the timer
+	hrtimer_start(&chip->timer_state_machine, ktime, HRTIMER_MODE_REL);
 }
 
 void fusb_StopTimers(void)
 {
-    int ret = 0;
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return;
-    }
-    mutex_lock(&chip->lock);
-    if (hrtimer_active(&chip->timer_state_machine) != 0)
-    {
-        ret = hrtimer_cancel(&chip->timer_state_machine);
-        printk(KERN_DEBUG "%s - Active state machine hrtimer canceled: %d\n", __func__, ret);
-    }
-    if (hrtimer_is_queued(&chip->timer_state_machine) != 0)
-    {
-        ret = hrtimer_cancel(&chip->timer_state_machine);
-        printk(KERN_DEBUG "%s - Queued state machine hrtimer canceled: %d\n", __func__, ret);
-    }
-    mutex_unlock(&chip->lock);
-    printk(KERN_DEBUG "FUSB  %s - Timer stopped!\n", __func__);
+	int ret = 0;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n",
+		       __func__);
+		return;
+	}
+	mutex_lock(&chip->lock);
+	if (hrtimer_active(&chip->timer_state_machine) != 0) {
+		ret = hrtimer_cancel(&chip->timer_state_machine);
+		printk(KERN_DEBUG "%s - Active state machine hrtimer canceled: %d\n",
+		       __func__, ret);
+	}
+	if (hrtimer_is_queued(&chip->timer_state_machine) != 0) {
+		ret = hrtimer_cancel(&chip->timer_state_machine);
+		printk(KERN_DEBUG "%s - Queued state machine hrtimer canceled: %d\n",
+		       __func__, ret);
+	}
+	mutex_unlock(&chip->lock);
+	printk(KERN_DEBUG "FUSB  %s - Timer stopped!\n", __func__);
 }
 
 // Get the max value that we can delay in 10us increments at compile time
 static const unsigned int MAX_DELAY_10US = (UINT_MAX / 10);
 void fusb_Delay10us(u32 delay10us)
 {
-    unsigned int us = 0;
-    if (delay10us > MAX_DELAY_10US)
-    {
-        printk(KERN_ALERT "%s - Error: Delay of '%u' is too long! Must be less than '%u'.\n", __func__, delay10us, MAX_DELAY_10US);
-        return;
-    }
+	unsigned int us = 0;
+	if (delay10us > MAX_DELAY_10US) {
+		printk(KERN_ALERT "%s - Error: Delay of '%u' is too long! Must be less than '%u'.\n",
+		       __func__, delay10us, MAX_DELAY_10US);
+		return;
+	}
 
-    us = delay10us * 10;                                    // Convert to microseconds (us)
+	// Convert to microseconds (us)
+	us = delay10us * 10;
 
-    if (us <= 10)                                           // Best practice is to use udelay() for < ~10us times
-    {
-        udelay(us);                                         // BLOCKING delay for < 10us
-    }
-    else if (us < 20000)                                    // Best practice is to use usleep_range() for 10us-20ms
-    {
-        // TODO - optimize this range, probably per-platform
-        usleep_range(us, us + (us / 10));                   // Non-blocking sleep for at least the requested time, and up to the requested time + 10%
-    }
-    else                                                    // Best practice is to use msleep() for > 20ms
-    {
-        msleep(us / 1000);                                  // Convert to ms. Non-blocking, low-precision sleep
-    }
+	// Best practice is to use udelay() for < ~10us times
+	if (us <= 10) {
+		// BLOCKING delay for < 10us
+		udelay(us);
+	} else if (us < 20000) {
+		// Best practice is to use usleep_range() for 10us-20ms
+		// TODO - optimize this range, probably per-platform
+		// Non-blocking sleep for at least the requested time, and up to the requested time + 10%
+		usleep_range(us, us + (us / 10));
+	} else {
+		// Best practice is to use msleep() for > 20ms
+		// Convert to ms. Non-blocking, low-precision sleep
+		msleep(us / 1000);
+	}
 }
 
 /*********************************************************************************************************************/
@@ -458,31 +471,33 @@ void fusb_Delay10us(u32 delay10us)
 * Return:          Number of chars written to output
 * Description:     Reading this file will output the most recently saved hostcomm output buffer
 ********************************************************************************/
-static ssize_t _fusb_Sysfs_Hostcomm_show(struct device* dev, struct device_attribute* attr, char* buf)
+static ssize_t _fusb_Sysfs_Hostcomm_show(struct device* dev,
+					 struct device_attribute* attr,
+					 char* buf)
 {
-    int i = 0;
-    int numChars = 0;
-    char tempBuf[6] = { 0 };
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (chip == NULL)
-    {
-        printk(KERN_ERR "%s - Chip structure is null!\n", __func__);
-    }
-    else if (buf == NULL || chip->HostCommBuf == NULL)
-    {
-        printk(KERN_ERR "%s - Buffer is null!\n", __func__);
-    }
-    else
-    {
-        for (i = 0; i < FSC_HOSTCOMM_BUFFER_SIZE; i++)
-        {
-            numChars += scnprintf(tempBuf, 6 * sizeof(char), "0x%02x ", chip->HostCommBuf[i]); // Copy 1 byte + null term
-            strcat(buf, tempBuf);   // Append each number to the output buffer
-        }
-        strcat(buf, "\n");   // Append a newline for pretty++
-        numChars++;          // Account for newline
-    }
-    return numChars;
+	int i = 0;
+	int numChars = 0;
+	char tempBuf[6] = { 0 };
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+
+	if (chip == NULL) {
+		printk(KERN_ERR "%s - Chip structure is null!\n", __func__);
+	} else if (buf == NULL || chip->HostCommBuf == NULL) {
+		printk(KERN_ERR "%s - Buffer is null!\n", __func__);
+	} else {
+		for (i = 0; i < FSC_HOSTCOMM_BUFFER_SIZE; i++) {
+			// Copy 1 byte + null term
+			numChars += scnprintf(tempBuf, 6 * sizeof(char),
+					      "0x%02x ", chip->HostCommBuf[i]);
+			// Append each number to the output buffer
+			strcat(buf, tempBuf);
+		}
+		// Append a newline for pretty++
+		strcat(buf, "\n");
+		// Account for newline
+		numChars++;
+	}
+	return numChars;
 }
 
 /*******************************************************************************
@@ -493,86 +508,79 @@ static ssize_t _fusb_Sysfs_Hostcomm_show(struct device* dev, struct device_attri
 * Return:          Number of chars written to output
 * Description:     Performs hostcomm duties, and stores output buffer in chip structure
 ********************************************************************************/
-static ssize_t _fusb_Sysfs_Hostcomm_store(struct device* dev, struct device_attribute* attr, const char* input, size_t size)
+static ssize_t _fusb_Sysfs_Hostcomm_store(struct device* dev,
+					  struct device_attribute *attr,
+					  const char *input, size_t size)
 {
-    int ret = 0;
-    int i = 0;
-    int j = 0;
-    char tempByte = 0;
-    int numBytes = 0;
-    char temp[6] = { 0 };   // Temp buffer to parse out individual hex numbers, +1 for null terminator
-    char temp_input[FSC_HOSTCOMM_BUFFER_SIZE] = { 0 };
-    char output[FSC_HOSTCOMM_BUFFER_SIZE] = { 0 };
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (chip == NULL)
-    {
-        printk(KERN_ERR "%s - Chip structure is null!\n", __func__);
-    }
-    else if (input == NULL)
-    {
-        printk(KERN_ERR "%s - Error: Input buffer is NULL!\n", __func__);
-    }
-    else
-    {
-        // Convert the buffer to hex values
-        for (i = 0; i < size; i = i + j)
-        {
-            // Parse out a hex number (at most 5 chars: "0x## ")
-            for (j = 0; (j < 5) && (j + i < size); j++)
-            {
-                // End of the hex number (space-delimited)
-                if (input[i + j] == ' ')
-                {
-                    break;                  // We found a space, stop copying this number and convert it
-                }
+	int ret = 0;
+	int i = 0;
+	int j = 0;
+	char tempByte = 0;
+	int numBytes = 0;
+	char temp[6] = { 0 };   // Temp buffer to parse out individual hex numbers, +1 for null terminator
+	char temp_input[FSC_HOSTCOMM_BUFFER_SIZE] = { 0 };
+	char output[FSC_HOSTCOMM_BUFFER_SIZE] = { 0 };
+	struct fusb30x_chip* chip = fusb30x_GetChip();
 
-                temp[j] = input[i + j];     // Copy the non-space byte into the temp buffer
-            }
+	if (chip == NULL) {
+		printk(KERN_ERR "%s - Chip structure is null!\n", __func__);
+	} else if (input == NULL) {
+		printk(KERN_ERR "%s - Error: Input buffer is NULL!\n", __func__);
+	} else {
+		// Convert the buffer to hex values
+		for (i = 0; i < size; i = i + j) {
+			// Parse out a hex number (at most 5 chars: "0x## ")
+			for (j = 0; (j < 5) && (j + i < size); j++) {
+				// End of the hex number (space-delimited)
+				if (input[i + j] == ' ') {
+					// We found a space, stop copying this number and convert it
+					break;
+				}
 
-            temp[++j] = 0;                  // Add a null terminator and move past the space
+				temp[j] = input[i + j];     // Copy the non-space byte into the temp buffer
+			}
 
-            // We have a hex digit (hopefully), now convert it
-            ret = kstrtou8(temp, 16, &tempByte);
-            if (ret != 0)
-            {
-                printk(KERN_ERR "FUSB  %s - Error: Hostcomm input is not a valid hex value! Return: '%d'\n", __func__, ret);
-                return 0;  // Quit on error
-            }
-            else
-            {
-                temp_input[numBytes++] = tempByte;
-                if (numBytes >= FSC_HOSTCOMM_BUFFER_SIZE)
-                {
-                    break;
-                }
-            }
-        }
+			temp[++j] = 0;                  // Add a null terminator and move past the space
 
-        fusb_ProcessMsg(temp_input, output);                                                // Handle the message
-        memcpy(chip->HostCommBuf, output, FSC_HOSTCOMM_BUFFER_SIZE);                        // Copy input into temp buffer
-    }
+			// We have a hex digit (hopefully), now convert it
+			ret = kstrtou8(temp, 16, &tempByte);
+			if (ret != 0) {
+				printk(KERN_ERR "FUSB  %s - Error: Hostcomm input is not a valid hex value! Return: '%d'\n", __func__, ret);
+				return 0;  // Quit on error
+			} else {
+				temp_input[numBytes++] = tempByte;
+				if (numBytes >= FSC_HOSTCOMM_BUFFER_SIZE) {
+					break;
+				}
+			}
+		}
 
-    return size;
+		// Handle the message
+		fusb_ProcessMsg(temp_input, output);
+		// Copy input into temp buffer
+		memcpy(chip->HostCommBuf, output, FSC_HOSTCOMM_BUFFER_SIZE);
+	}
+
+	return size;
 }
 
 // Define our device attributes to export them to sysfs
-static DEVICE_ATTR(fusb30x_hostcomm, S_IRWXU | S_IRWXG | S_IROTH, _fusb_Sysfs_Hostcomm_show, _fusb_Sysfs_Hostcomm_store);
+static DEVICE_ATTR(fusb30x_hostcomm, S_IRWXU | S_IRWXG | S_IROTH,
+		   _fusb_Sysfs_Hostcomm_show, _fusb_Sysfs_Hostcomm_store);
 
 void fusb_Sysfs_Init(void)
 {
-    int ret = 0;
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (chip == NULL)
-    {
-        printk(KERN_ERR "%s - Chip structure is null!\n", __func__);
-        return;
-    }
-    ret = device_create_file(&chip->client->dev, &dev_attr_fusb30x_hostcomm);
-    if (ret != 0)
-    {
-        dev_err(&chip->client->dev, "FUSB  %s - Error: Unable to initialize sysfs device file 'fusb30x_io'! ret = %d\n", __func__, ret);
-        return;
-    }
+	int ret = 0;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (chip == NULL) {
+		printk(KERN_ERR "%s - Chip structure is null!\n", __func__);
+		return;
+	}
+	ret = device_create_file(&chip->client->dev, &dev_attr_fusb30x_hostcomm);
+	if (ret != 0) {
+		dev_err(&chip->client->dev, "FUSB  %s - Error: Unable to initialize sysfs device file 'fusb30x_io'! ret = %d\n", __func__, ret);
+		return;
+	}
 }
 
 /*********************************************************************************************************************/
@@ -582,58 +590,56 @@ void fusb_Sysfs_Init(void)
 /*********************************************************************************************************************/
 void fusb_InitializeCore(void)
 {
-    core_initialize();
-    printk(KERN_DEBUG "FUSB  %s - Core is initialized!\n", __func__);
-    fusb_StartTimers();
-    printk(KERN_DEBUG "FUSB  %s - Timers are started!\n", __func__);
-    core_enable_typec(TRUE);
-    printk(KERN_DEBUG "FUSB  %s - Type-C State Machine is started!\n", __func__);
+	core_initialize();
+	printk(KERN_DEBUG "FUSB  %s - Core is initialized!\n", __func__);
+	fusb_StartTimers();
+	printk(KERN_DEBUG "FUSB  %s - Timers are started!\n", __func__);
+	core_enable_typec(TRUE);
+	printk(KERN_DEBUG "FUSB  %s - Type-C State Machine is started!\n", __func__);
 }
 
 bool fusb_IsDeviceValid(void)
 {
-    unsigned char val = 0;
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (!chip)
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
-        return FALSE;
-    }
+	unsigned char val = 0;
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (!chip) {
+		printk(KERN_ALERT "FUSB  %s - Error: Chip structure is NULL!\n", __func__);
+		return FALSE;
+	}
 
-    // Test to see if we can do a successful I2C read
-    if (!fusb_I2C_ReadData((unsigned char)0x01, &val))
-    {
-        printk(KERN_ALERT "FUSB  %s - Error: Could not communicate with device over I2C!\n", __func__);
-        return FALSE;
-    }
+	// Test to see if we can do a successful I2C read
+	if (!fusb_I2C_ReadData((unsigned char)0x01, &val))
+	{
+	printk(KERN_ALERT "FUSB  %s - Error: Could not communicate with device over I2C!\n", __func__);
+	return FALSE;
+	}
 
-    return TRUE;
+	return TRUE;
 }
 
 void fusb_InitChipData(void)
 {
-    struct fusb30x_chip* chip = fusb30x_GetChip();
-    if (chip == NULL)
-    {
-        printk(KERN_ALERT "%s - Chip structure is null!\n", __func__);
-        return;
-    }
+	struct fusb30x_chip* chip = fusb30x_GetChip();
+	if (chip == NULL) {
+		printk(KERN_ALERT "%s - Chip structure is null!\n", __func__);
+		return;
+	}
 
 #ifdef DEBUG
-    chip->dbgTimerTicks = 0;
-    chip->dbgTimerRollovers = 0;
-    chip->dbgSMTicks = 0;
-    chip->dbgSMRollovers = 0;
-    chip->dbg_gpio_StateMachine = false;
+	chip->dbgTimerTicks = 0;
+	chip->dbgTimerRollovers = 0;
+	chip->dbgSMTicks = 0;
+	chip->dbgSMRollovers = 0;
+	chip->dbg_gpio_StateMachine = false;
 #endif  // DEBUG
 
-    /* GPIO Defaults */
-    chip->gpio_VBus5V_value = false;
-    chip->gpio_VBusOther_value = false;
+	/* GPIO Defaults */
+	chip->gpio_VBus5V_value = false;
+	chip->gpio_VBusOther_value = false;
 
-    /* I2C Configuration */
-    chip->InitDelayMS = INIT_DELAY_MS;                                              // Time to wait before device init
-    chip->numRetriesI2C = RETRIES_I2C;                                              // Number of times to retry I2C reads and writes
+	/* I2C Configuration */
+	chip->InitDelayMS = INIT_DELAY_MS;                                              // Time to wait before device init
+	chip->numRetriesI2C = RETRIES_I2C;                                              // Number of times to retry I2C reads and writes
 }
 
 
